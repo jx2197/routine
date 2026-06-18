@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="StretchFit">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>StretchFit</title>
+<style>
+:root{--dark:#111827;--green:#16a34a;--red:#dc2626;--blue:#2563eb;--bg:#f6f7fb;--muted:#6b7280}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#111}
+body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}#app{min-height:100vh;background:var(--bg)}
+.top{height:26px;background:var(--dark)}.tabs{display:flex;gap:8px;overflow-x:auto;background:#fff;padding:10px;border-bottom:1px solid #ddd}
+.tab{border:1px solid #ccc;border-radius:18px;padding:8px 12px;white-space:nowrap;background:#f3f4f6;font-size:15px}.tab.active{background:var(--dark);color:#fff}
+.content{padding:10px 10px 96px}.card{background:#fff;border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 1px 4px #0001}.title{font-size:22px;font-weight:800}.name{font-size:19px;font-weight:700}.meta{font-size:14px;color:var(--muted);margin-top:4px}.notes{font-size:14px;color:#374151;margin-top:7px;white-space:pre-wrap}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #ddd;display:flex;gap:8px;padding:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:5}
+.btn{flex:1;border:0;border-radius:14px;padding:14px 10px;font-size:16px;font-weight:700;background:#e5e7eb;color:#111}.dark{background:var(--dark)!important;color:#fff!important}.green{background:var(--green)!important;color:#fff!important}.red{background:var(--red)!important;color:#fff!important}.blue{background:var(--blue)!important;color:#fff!important}
+.moodRow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}.moodBtn{font-size:30px;border:0;background:#f3f4f6;border-radius:16px;padding:8px 11px;min-width:54px}
+.daybar{display:flex;align-items:center;justify-content:space-between;background:#fff;margin:10px;padding:12px;border-radius:14px}.arrow{border:1px solid #d1d5db;background:#f3f4f6;color:#374151;font-size:24px;font-weight:900;padding:6px 14px;border-radius:999px;min-width:48px}.day{font-size:22px;font-weight:700}
+.imgs{display:flex;gap:8px;overflow-x:auto;margin-top:10px}.imgs img{height:130px;max-width:92%;border-radius:12px;object-fit:cover;background:#0f172a}.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.mini{border:0;border-radius:9px;background:#e5e7eb;padding:7px 9px;font-size:13px}.mini.dark,.mini.red{color:#fff}
+input,textarea,select{width:100%;border:1px solid #d1d5db;border-radius:12px;padding:12px;font-size:16px;background:#fff;margin:5px 0}textarea{min-height:80px}.small{font-size:13px;color:var(--muted)}
+.daychecks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.daychecks label{background:#f3f4f6;border:1px solid #d1d5db;border-radius:14px;padding:10px 11px;display:flex;align-items:center;gap:9px;color:#374151;font-weight:800}
+.daychecks input{width:auto;margin:0;position:absolute;opacity:0;pointer-events:none}
+.dayTick{width:22px;height:22px;border-radius:8px;border:2px solid #9ca3af;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:1000;line-height:1;background:#fff;color:transparent;flex:0 0 auto}
+.daychecks input:checked+.dayTick{background:#2563eb;border-color:#2563eb;color:#fff}
+.daychecks label:has(input:checked){background:#dbeafe;border-color:#60a5fa;color:#1e40af}
+.dayText{line-height:1}
+.progress{height:16px;border-radius:999px;background:#e5e7eb;overflow:hidden;margin-top:6px}.fill{height:100%;background:var(--green);width:0%}
+.overlay{position:fixed;inset:0;background:#0008;display:flex;align-items:flex-end;z-index:30}.sheet{background:#fff;width:100%;border-radius:22px 22px 0 0;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}
+.logDate{font-size:18px;font-weight:800;margin:18px 0 8px}.logEntry{background:#fff;border-radius:14px;padding:12px;margin:8px 0;box-shadow:0 1px 4px #0001}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}.calcell{min-height:42px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700}.done{background:var(--green)!important;color:white}.holiday{background:var(--blue)!important;color:white;font-size:13px}
+.timer,.complete{position:fixed;inset:0;background:var(--dark);color:white;z-index:20;display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 14px calc(10px + env(safe-area-inset-bottom));overflow:auto}.timer h1,.complete h1{text-align:center;font-size:26px;margin:0 0 8px}.complete h1{font-size:28px}
+.timerImg{display:flex;justify-content:center;overflow-x:auto;gap:10px;margin:8px 0}.timerImg img{width:min(82vw,330px);height:210px;object-fit:contain;background:#0f172a;border-radius:16px}
+.round{text-align:center;color:#d1d5db;font-size:17px;min-height:28px}.count{text-align:center;font-size:42px;font-weight:800;margin:8px 0}.timerNote{text-align:center;color:#e5e7eb;font-size:15px;margin:4px 0 8px;white-space:pre-wrap}.timer .progress{background:#374151}.timer .fill{background:white}.timerBtns{display:grid;gap:8px;margin-top:auto}
+
+.waterTop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.waterAmount{font-size:27px;font-weight:800;margin-top:6px;text-align:center;cursor:pointer;line-height:1.1}
+.waterGoal{text-align:center;color:var(--muted);font-size:12px;margin-top:1px}
+.waterBtns{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.waterStatusRed{color:#dc2626}.waterStatusOrange{color:#f97316}.waterStatusGreen{color:#16a34a}
+.waterFillRed{background:#dc2626}.waterFillOrange{background:#f97316}.waterFillGreen{background:#16a34a}.waterBtns .btn{padding:10px 7px;font-size:13px;border-radius:12px}
+.cog{border:0;background:transparent;color:#6b7280;width:28px;height:28px;font-size:16px;padding:0;line-height:1;border-radius:999px}
+
+
+.summaryHeader{cursor:pointer;user-select:none}.summaryChevron{font-size:14px;color:var(--muted);margin-left:6px}.themePick{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+.themeTiny{border:0;border-radius:999px;background:#f3f4f6;color:#374151;padding:7px 10px;font-size:13px;font-weight:700}
+body.theme-dark{--dark:#050816;--bg:#0b1020;--muted:#aeb7cc;background:#0b1020;color:#f8fafc}
+body.theme-dark .top{background:#050816}
+body.theme-dark .tabs,body.theme-dark .bottom{background:#111827;border-color:#263244}
+body.theme-dark .tab{background:#1f2937;color:#e5e7eb;border-color:#374151}
+body.theme-dark .tab.active{background:#f8fafc;color:#111827}
+body.theme-dark .card,body.theme-dark .logEntry,body.theme-dark .sheet,body.theme-dark .daybar,body.theme-dark .calcell,body.theme-dark .moodCalCell{background:#111827;color:#f8fafc;box-shadow:0 1px 6px #0005}
+body.theme-dark .meta,body.theme-dark .small,body.theme-dark .notes,body.theme-dark .waterGoal{color:#aeb7cc}
+body.theme-dark input,body.theme-dark textarea{background:#0b1020;color:#f8fafc;border-color:#374151}
+body.theme-dark .btn,body.theme-dark .mini,body.theme-dark .moodBtn,body.theme-dark .moodMiniBtn,body.theme-dark .cog,body.theme-dark .themeTiny{background:#1f2937;color:#f8fafc}
+body.theme-clockit{--dark:#7c3aed;--bg:#fff1f7;--muted:#8b5c72;background:#fff1f7;color:#331225}
+body.theme-clockit .top{background:linear-gradient(90deg,#c084fc,#fb7185)}
+body.theme-clockit .tabs,body.theme-clockit .bottom{background:#fff7fb;border-color:#f9a8d4}
+body.theme-clockit .tab{background:#ffe4f1;color:#6d214f;border-color:#f9a8d4}
+body.theme-clockit .tab.active{background:linear-gradient(135deg,#c084fc,#fb7185);color:white;border-color:transparent}
+body.theme-clockit .card,body.theme-clockit .logEntry,body.theme-clockit .sheet,body.theme-clockit .daybar,body.theme-clockit .calcell,body.theme-clockit .moodCalCell{background:#fffaff;color:#331225;box-shadow:0 3px 14px #d9468f22}
+body.theme-clockit .meta,body.theme-clockit .small,body.theme-clockit .notes,body.theme-clockit .waterGoal{color:#8b5c72}
+body.theme-clockit input,body.theme-clockit textarea{background:#fff7fb;color:#331225;border-color:#f9a8d4}
+body.theme-clockit .dark{background:#a855f7!important;color:#fff!important}
+body.theme-clockit .green{background:#ec4899!important;color:#fff!important}
+body.theme-clockit .blue{background:#c084fc!important;color:#fff!important}
+body.theme-clockit .btn,body.theme-clockit .mini,body.theme-clockit .moodBtn,body.theme-clockit .moodMiniBtn,body.theme-clockit .cog,body.theme-clockit .themeTiny{background:#ffe4f1;color:#6d214f}
+body.theme-clockit .waterFillRed{background:#fb7185}body.theme-clockit .waterFillOrange{background:#f59e0b}
+body.theme-clockit .waterFillGreen{background:#ec4899}
+body.theme-clockit .waterStatusRed{color:#e11d48}body.theme-clockit .waterStatusOrange{color:#f59e0b}
+body.theme-clockit .waterStatusGreen{color:#be185d}
+
+
+body.theme-relaxar{--dark:#1f3a46;--green:#5f8f8a;--red:#b77979;--blue:#5b879b;--bg:#182329;--muted:#9fb1b8;background:#182329;color:#e8f0f2}
+body.theme-relaxar .top{background:#132027}
+body.theme-relaxar .tabs,body.theme-relaxar .bottom{background:#203039;border-color:#2c4450}
+body.theme-relaxar .tab{background:#263943;color:#d7e5e8;border-color:#36515d}
+body.theme-relaxar .tab.active{background:#5b879b;color:#07161c;border-color:transparent}
+body.theme-relaxar .card,body.theme-relaxar .logEntry,body.theme-relaxar .sheet,body.theme-relaxar .daybar,body.theme-relaxar .calcell,body.theme-relaxar .moodCalCell{background:#22323a;color:#e8f0f2;box-shadow:0 2px 12px #0004}
+body.theme-relaxar .meta,body.theme-relaxar .small,body.theme-relaxar .notes,body.theme-relaxar .waterGoal{color:#9fb1b8}
+body.theme-relaxar input,body.theme-relaxar textarea{background:#182329;color:#e8f0f2;border-color:#36515d}
+body.theme-relaxar .btn,body.theme-relaxar .mini,body.theme-relaxar .moodBtn,body.theme-relaxar .moodMiniBtn,body.theme-relaxar .cog,body.theme-relaxar .themeTiny{background:#2d424c;color:#e8f0f2}
+body.theme-relaxar .dark{background:#5b879b!important;color:#07161c!important}
+body.theme-relaxar .green{background:#5f8f8a!important;color:#07161c!important}
+body.theme-relaxar .blue{background:#5b879b!important;color:#07161c!important}
+body.theme-relaxar .fill{background:#5f8f8a}
+body.theme-relaxar .waterFillRed{background:#5b879b}
+body.theme-relaxar .waterFillOrange{background:#6f9fa0}
+body.theme-relaxar .waterFillGreen{background:#5f8f8a}
+body.theme-relaxar .waterStatusRed{color:#8fb9c6}
+body.theme-relaxar .waterStatusOrange{color:#9bc4c0}
+body.theme-relaxar .waterStatusGreen{color:#a9d1c9}
+body.theme-relaxar .habitSectionTitle{color:#9fb1b8}
+body.theme-relaxar .habitItem,body.theme-relaxar .habitManage{background:#263943;border-color:#36515d;color:#e8f0f2}
+body.theme-relaxar .habitItem.checked{background:#294842;border-color:#5f8f8a}
+body.theme-relaxar .habitTab{background:#263943;color:#d7e5e8}
+body.theme-relaxar .habitTab.active{background:#5b879b;color:#07161c}
+body.theme-relaxar .habitLogDone{background:#294842;color:#c9f0e8}
+body.theme-relaxar .habitLogMiss{background:#3d3033;color:#e8bbbb}
+body.theme-relaxar .missionCard{border-color:#36515d}
+body.theme-relaxar .missionItem{background:#263943}
+body.theme-relaxar .missionItem.done{background:#5f8f8a}
+body.theme-relaxar .missionItem.done .missionSmall,
+body.theme-relaxar .missionItem.done .missionValue,
+body.theme-relaxar .missionItem.done .missionLabel{color:#07161c!important}
+body.theme-relaxar .dailyStreakCard{border-color:#36515d}
+body.theme-relaxar .dailyPill{background:#263943;color:#d7e5e8}
+body.theme-relaxar .dailyPill.done{background:#5f8f8a;color:#07161c}
+body.theme-relaxar .nameEditBtn{color:#9fb1b8}
+body.theme-relaxar .exerciseLogDone{background:#294842;color:#c9f0e8}
+body.theme-relaxar .exerciseLogMiss{background:#3d3033;color:#e8bbbb}
+body.theme-relaxar .welcomeCard{border-color:#36515d}
+body.theme-relaxar .welcomeChip{background:#263943;color:#d7e5e8}
+body.theme-relaxar .welcomeNext{background:#1b2a31;color:#c6d6da}
+body.theme-relaxar .welcomeNext b{color:#d9eef2}
+body.theme-relaxar .holidayActiveBar{background:#263943;color:#d7e5e8;border-color:#36515d}
+body.theme-relaxar .trendValue{color:#c8e2e6}
+body.theme-relaxar .trendLine{stroke:#7fb0ae}
+body.theme-relaxar .trendDot{fill:#c8e2e6}
+body.theme-relaxar .trendArea{fill:rgba(127,176,174,.14)}
+body.theme-relaxar .trendAxis,body.theme-relaxar .trendGridLine{stroke:#36515d}
+body.theme-relaxar .waterBtn{background:#36515d;color:#e8f0f2;border:1px solid #5b879b}
+body.theme-relaxar .waterBtnLog{background:#5b879b;color:#07161c}
+
+
+
+.habitTop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.habitSection{margin-top:10px}
+.habitSectionTitle{font-size:13px;font-weight:900;color:#374151;text-transform:uppercase;letter-spacing:.04em;margin:10px 0 6px}
+.habitItem{display:flex;align-items:center;gap:9px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:9px 10px;margin:6px 0;font-size:15px}
+.habitItem input{width:auto;margin:0;transform:scale(1.15)}
+.habitItem.checked{background:#ecfdf5;border-color:#86efac}
+.habitActions{display:flex;gap:7px;margin-top:10px}
+.habitTabs{display:flex;gap:7px;margin:10px 0}
+.habitTab{flex:1;border:0;border-radius:12px;background:#e5e7eb;padding:10px 7px;font-size:14px;font-weight:800}
+.habitTab.active{background:var(--dark);color:#fff}
+.habitLogLine{border-radius:10px;padding:9px 10px;margin:6px 0;font-weight:700}
+.habitLogDone{background:#dcfce7;color:#166534}
+.habitLogMiss{background:#fee2e2;color:#991b1b}
+.habitManage{display:flex;align-items:center;gap:8px;background:#f9fafb;border-radius:12px;padding:9px 10px;margin:7px 0}
+.habitManage span{flex:1}
+body.theme-dark .habitSectionTitle{color:#cbd5e1}
+body.theme-dark .habitItem,body.theme-dark .habitManage{background:#1f2937;border-color:#374151;color:#f8fafc}
+body.theme-dark .habitItem.checked{background:#064e3b;border-color:#16a34a}
+body.theme-dark .habitTab{background:#1f2937;color:#f8fafc}
+body.theme-dark .habitTab.active{background:#f8fafc;color:#111827}
+body.theme-clockit .habitSectionTitle{color:#8b5c72}
+body.theme-clockit .habitItem,body.theme-clockit .habitManage{background:#fff7fb;border-color:#f9a8d4;color:#331225}
+body.theme-clockit .habitItem.checked{background:#fce7f3;border-color:#ec4899}
+body.theme-clockit .habitTab{background:#ffe4f1;color:#6d214f}
+body.theme-clockit .habitTab.active{background:linear-gradient(135deg,#c084fc,#fb7185);color:white}
+body.theme-clockit .habitLogDone{background:#fce7f3;color:#be185d}
+body.theme-clockit .habitLogMiss{background:#ffe4e6;color:#be123c}
+
+
+.summaryCard{padding:12px}
+.summaryTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+.summaryTab{border:0;border-radius:999px;background:#e5e7eb;color:#374151;padding:8px 6px;font-size:13px;font-weight:800}
+.summaryTab.active{background:var(--dark);color:white}
+.summaryLine{border-top:1px solid #eef0f4;padding:9px 0;font-size:14px;line-height:1.35}
+.summaryLine:first-of-type{border-top:0}
+.summaryMetric{font-weight:900}
+.summaryGood{color:#16a34a;font-weight:800}
+.summaryWarn{color:#dc2626;font-weight:800}
+.summaryNeutral{color:#6b7280;font-weight:800}
+body.theme-dark .summaryLine{border-color:#263244}
+body.theme-dark .summaryTab{background:#1f2937;color:#e5e7eb}
+body.theme-dark .summaryTab.active{background:#f8fafc;color:#111827}
+body.theme-clockit .summaryLine{border-color:#f9a8d4}
+body.theme-clockit .summaryTab{background:#ffe4f1;color:#6d214f}
+body.theme-clockit .summaryTab.active{background:linear-gradient(135deg,#c084fc,#fb7185);color:white}
+
+
+.moodCard{padding:10px 12px}
+.moodCard .title{font-size:19px}
+.moodCard .moodRow{margin-top:8px;gap:7px}
+.moodCard .moodBtn{font-size:28px;min-width:54px;padding:7px 10px;border-radius:15px}
+.moodCard .btn{padding:10px 7px;font-size:13px;border-radius:12px}
+.moodCard .meta{font-size:12px}
+
+
+.moodActions{display:flex;gap:7px;margin-top:9px}
+.moodActions .btn{padding:9px 7px;font-size:13px;border-radius:12px}.moodMiniBtn{border:0;border-radius:14px;background:#e5e7eb;color:#111;padding:9px 10px;font-size:17px;font-weight:800;white-space:nowrap;min-width:42px}.moodFaces{display:flex;gap:7px;align-items:center}.moodIconBtns{display:flex;gap:6px;align-items:center;margin-left:auto}
+.moodCalGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.moodCalCell{min-height:46px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;font-weight:700}
+.moodDot{width:30px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800}
+.moodPos{background:#16a34a}.moodNeg{background:#dc2626}.moodNeu{background:#9ca3af}
+.moodLegend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.moodLegendItem{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.moodLegendDot{width:12px;height:12px;border-radius:999px;display:inline-block}
+
+body.theme-clockit .moodPos{background:#22c55e}body.theme-clockit .moodNeg{background:#fb7185}body.theme-clockit .moodNeu{background:#c4b5fd}
+
+.missionCard{border:1px solid #e5e7eb}
+.missionHead{display:flex;justify-content:space-between;align-items:center;gap:8px}.missionLeftText{font-size:13px;font-weight:900;color:var(--muted);white-space:nowrap}.missionGrid{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+.missionItem{border-radius:14px;background:#f3f4f6;padding:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.missionItem.done{background:#ecfdf5}
+.missionLabel{font-weight:800}
+.missionValue{font-weight:900;color:var(--dark)}
+.missionSmall{font-size:12px;color:var(--muted);margin-top:2px}
+body.theme-dark .missionCard{border-color:#263244}
+body.theme-dark .missionItem{background:#1f2937}
+body.theme-dark .missionItem.done{background:#0f3d2e}
+body.theme-dark .missionValue{color:#f8fafc}
+body.theme-clockit .missionCard{border-color:#f9a8d4}
+body.theme-clockit .missionItem{background:#ffe4f1}
+body.theme-clockit .missionItem.done{background:#fce7f3}
+
+
+.missionItem.done .missionSmall{color:#065f46}
+.missionItem.done .missionValue{color:#065f46}
+.missionItem.done .missionLabel{color:#064e3b}
+body.theme-dark .missionItem.done .missionSmall,
+body.theme-dark .missionItem.done .missionValue,
+body.theme-dark .missionItem.done .missionLabel{color:#d1fae5}
+body.theme-clockit .missionItem.done .missionSmall,
+body.theme-clockit .missionItem.done .missionValue,
+body.theme-clockit .missionItem.done .missionLabel{color:#831843}
+
+
+.missionItem.done .missionSmall,
+.missionItem.done .missionValue,
+.missionItem.done .missionLabel{color:#fff!important}
+body.theme-dark .missionItem.done .missionSmall,
+body.theme-dark .missionItem.done .missionValue,
+body.theme-dark .missionItem.done .missionLabel{color:#fff!important}
+body.theme-clockit .missionItem.done .missionSmall,
+body.theme-clockit .missionItem.done .missionValue,
+body.theme-clockit .missionItem.done .missionLabel{color:#fff!important}
+
+
+.nameEditBtn{border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:800;padding:4px 0}
+body.theme-dark .nameEditBtn{color:#aeb7cc}
+body.theme-clockit .nameEditBtn{color:#8b5c72}
+
+
+.mainTabs .tab{font-weight:900}
+.subTabs{padding-top:6px;background:#fafafa}
+body.theme-dark .subTabs{background:#111827}
+body.theme-clockit .subTabs{background:#fff7fb}
+
+
+/* Clock It theme polish: remove default green progress bars and make logs clearer */
+body.theme-clockit .fill{background:linear-gradient(90deg,#c084fc,#fb7185)!important}
+body.theme-clockit .timer .fill{background:#fff!important}
+body.theme-clockit .waterFillRed{background:#fb7185!important}
+body.theme-clockit .waterFillOrange{background:#f59e0b!important}
+body.theme-clockit .waterFillGreen{background:linear-gradient(90deg,#c084fc,#ec4899)!important}
+body.theme-clockit .waterStatusRed{color:#e11d48!important}
+body.theme-clockit .waterStatusOrange{color:#b45309!important}
+body.theme-clockit .waterStatusGreen{color:#be185d!important}
+
+body.theme-clockit .done{background:linear-gradient(135deg,#c084fc,#fb7185)!important;color:#fff!important}
+body.theme-clockit .holiday{background:#a78bfa!important;color:#fff!important}
+
+body.theme-clockit .missionItem.done{background:linear-gradient(135deg,#c084fc,#fb7185)!important}
+body.theme-clockit .missionItem.done .missionSmall,
+body.theme-clockit .missionItem.done .missionValue,
+body.theme-clockit .missionItem.done .missionLabel{color:#fff!important}
+
+body.theme-clockit .summaryGood{color:#7e22ce!important}
+body.theme-clockit .summaryWarn{color:#be123c!important}
+body.theme-clockit .summaryNeutral{color:#6d214f!important}
+
+body.theme-clockit .habitItem.checked{background:linear-gradient(135deg,#fce7f3,#ede9fe)!important;border-color:#c084fc!important;color:#331225!important}
+body.theme-clockit .habitLogDone{background:#ede9fe!important;color:#4c1d95!important;border-left:6px solid #7c3aed!important}
+body.theme-clockit .habitLogMiss{background:#ffe4e6!important;color:#881337!important;border-left:6px solid #e11d48!important}
+body.theme-clockit .habitLogLine{box-shadow:0 1px 0 #f9a8d4 inset}
+
+body.theme-clockit .moodPos{background:#7c3aed!important}
+body.theme-clockit .moodNeg{background:#e11d48!important}
+body.theme-clockit .moodNeu{background:#a78bfa!important;color:#331225!important}
+body.theme-clockit .moodLegendItem{color:#6d214f!important}
+
+
+.navThemeBtn{margin-left:auto;flex:0 0 auto;border:0;border-radius:999px;background:#f3f4f6;color:#374151;padding:8px 11px;font-size:13px;font-weight:900;white-space:nowrap}
+body.theme-dark .navThemeBtn{background:#1f2937;color:#f8fafc}
+body.theme-clockit .navThemeBtn{background:#ffe4f1;color:#6d214f}
+
+
+.missionToggle{border:0;border-radius:999px;background:#e5e7eb;color:#374151;padding:5px 8px;font-size:11px;font-weight:900;margin-top:4px;white-space:nowrap}
+body.theme-dark .missionToggle{background:#1f2937;color:#f8fafc}
+body.theme-clockit .missionToggle{background:#ffe4f1;color:#6d214f}
+
+
+.missionGapTop{margin-top:10px}
+.missionGapBig{margin-top:14px}
+
+
+.missionSectionLabel{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:right;margin:6px 2px -4px}
+body.theme-dark .missionSectionLabel{color:#aeb7cc}
+body.theme-clockit .missionSectionLabel{color:#8b5c72}
+
+
+.holidayBottom{display:flex;justify-content:flex-end;margin:4px 2px 0}
+.holidayBottom .missionToggle{font-size:12px;padding:7px 11px}
+
+
+.dailyStreakCard{border:1px solid #e5e7eb}
+.dailyStreakTop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.dailyStreakNumber{font-size:28px;font-weight:1000;line-height:1;color:var(--dark);white-space:nowrap}
+.dailyStreakSub{font-size:12px;color:var(--muted);margin-top:3px}
+.dailyPillRow{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.dailyPill{border-radius:999px;background:#f3f4f6;padding:7px 6px;text-align:center;font-size:12px;font-weight:900;color:#374151}
+.dailyPill.done{background:#16a34a;color:#fff}
+body.theme-dark .dailyStreakCard{border-color:#263244}
+body.theme-dark .dailyStreakNumber{color:#f8fafc}
+body.theme-dark .dailyPill{background:#1f2937;color:#f8fafc}
+body.theme-dark .dailyPill.done{background:#16a34a;color:#fff}
+body.theme-clockit .dailyStreakCard{border-color:#f9a8d4}
+body.theme-clockit .dailyStreakNumber{color:#be185d}
+body.theme-clockit .dailyPill{background:#ffe4f1;color:#6d214f}
+body.theme-clockit .dailyPill.done{background:linear-gradient(135deg,#c084fc,#fb7185);color:#fff}
+
+
+.streakGoalBtn{border:0;background:transparent;color:inherit;font:inherit;font-weight:1000;padding:0;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.streakGoalHint{font-size:11px;color:var(--muted);margin-top:2px}
+body.theme-dark .streakGoalHint{color:#aeb7cc}
+body.theme-clockit .streakGoalHint{color:#8b5c72}
+
+
+.dailyPill{cursor:pointer}
+.exerciseLogLine{border-radius:10px;padding:9px 10px;margin:6px 0;font-weight:700}
+.exerciseLogDone{background:#dcfce7;color:#166534}
+.exerciseLogMiss{background:#fee2e2;color:#991b1b}
+body.theme-clockit .exerciseLogDone{background:#ede9fe!important;color:#4c1d95!important;border-left:6px solid #7c3aed!important}
+body.theme-clockit .exerciseLogMiss{background:#ffe4e6!important;color:#881337!important;border-left:6px solid #e11d48!important}
+body.theme-dark .exerciseLogDone{background:#064e3b;color:#d1fae5}
+body.theme-dark .exerciseLogMiss{background:#451a1a;color:#fecaca}
+
+
+.welcomeCard{padding:13px 14px;border:1px solid #e5e7eb}
+.welcomeTop{display:flex;align-items:center;gap:10px}
+.welcomeHi{font-size:22px;font-weight:1000;line-height:1.1}
+.welcomeLine{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.35}
+.welcomeChip{border-radius:999px;background:#f3f4f6;color:#374151;padding:7px 10px;font-size:12px;font-weight:900;white-space:nowrap}
+.welcomeNext{margin-top:10px;border-radius:14px;background:#f9fafb;padding:10px;font-size:13px;color:#374151}
+.welcomeNext b{color:#111}
+body.theme-dark .welcomeCard{border-color:#263244}
+body.theme-dark .welcomeChip{background:#1f2937;color:#f8fafc}
+body.theme-dark .welcomeNext{background:#0b1020;color:#cbd5e1}
+body.theme-dark .welcomeNext b{color:#f8fafc}
+body.theme-clockit .welcomeCard{border-color:#f9a8d4}
+body.theme-clockit .welcomeChip{background:#ffe4f1;color:#6d214f}
+body.theme-clockit .welcomeNext{background:#fff7fb;color:#6d214f}
+body.theme-clockit .welcomeNext b{color:#be185d}
+
+
+.welcomeCompareLine{margin-top:4px}
+.welcomeCompareLine span{font-weight:900}
+
+
+.navConfigBtn{width:34px;height:34px;padding:0;font-size:17px;display:flex;align-items:center;justify-content:center}
+.configPick{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+
+
+.trendsIntro{font-size:13px;color:var(--muted);margin:4px 0 12px}
+.trendCard{padding:12px}
+.trendTop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.trendTitle{font-weight:900;font-size:16px}
+.trendValue{font-weight:1000;font-size:14px;color:var(--dark);white-space:nowrap}
+.trendSvg{width:100%;height:126px;display:block;margin-top:6px}
+.trendAxis{stroke:#e5e7eb;stroke-width:1}
+.trendGridLine{stroke:#eef0f4;stroke-width:1}
+.trendLine{fill:none;stroke:var(--dark);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.trendArea{fill:rgba(37,99,235,.10)}
+.trendDot{fill:var(--dark)}
+.trendFooter{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:2px}
+.noTrendData{font-size:13px;color:var(--muted);padding:20px 0;text-align:center}
+body.theme-dark .trendAxis,body.theme-dark .trendGridLine{stroke:#263244}
+body.theme-dark .trendValue{color:#f8fafc}
+body.theme-dark .trendLine{stroke:#f8fafc}
+body.theme-dark .trendDot{fill:#f8fafc}
+body.theme-dark .trendArea{fill:rgba(248,250,252,.10)}
+body.theme-clockit .trendValue{color:#be185d}
+body.theme-clockit .trendLine{stroke:#ec4899}
+body.theme-clockit .trendDot{fill:#be185d}
+body.theme-clockit .trendArea{fill:rgba(236,72,153,.14)}
+body.theme-clockit .trendAxis,body.theme-clockit .trendGridLine{stroke:#f9a8d4}
+
+
+.holidayActiveBar{background:#dbeafe;color:#1e40af;font-size:12px;font-weight:900;text-align:center;padding:6px 10px;border-bottom:1px solid #bfdbfe}
+body.theme-dark .holidayActiveBar{background:#172554;color:#bfdbfe;border-color:#1d4ed8}
+body.theme-clockit .holidayActiveBar{background:#fce7f3;color:#be185d;border-color:#f9a8d4}
+
+
+.missionHead{cursor:pointer}
+.missionChevron{font-size:16px;font-weight:1000;color:var(--muted)}
+
+
+.waterBtn{border:0;border-radius:999px;background:#f3f4f6;color:#374151;padding:9px 8px;font-size:13px;font-weight:900;flex:1;text-align:center}
+.waterBtnLog{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#fff}
+body.theme-dark .waterBtn{background:#1e3a8a;color:#dbeafe;border:1px solid #3b82f6}
+body.theme-dark .waterBtnLog{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#fff}
+body.theme-clockit .waterBtn{background:#fbcfe8;color:#831843;border:1px solid #f472b6}
+body.theme-clockit .waterBtnLog{background:linear-gradient(135deg,#c084fc,#fb7185);color:#fff}
+
+
+.waterBtns{display:flex;gap:8px}
+
+.welcomeHabitText{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.35}
+.welcomeHabitList{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.welcomeHabitChip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:#f3f4f6;color:#374151;padding:7px 9px;font-size:12px;font-weight:900}
+.welcomeHabitChip input{width:auto;margin:0;transform:scale(1.05)}
+body.theme-dark .welcomeHabitChip{background:#1f2937;color:#f8fafc}
+body.theme-clockit .welcomeHabitChip{background:#ffe4f1;color:#6d214f}
+body.theme-relaxar .welcomeHabitChip{background:#263943;color:#d7e5e8;border:1px solid #36515d}
+
+
+body.theme-dark .arrow{background:#1f2937;color:#f8fafc;border-color:#374151}
+body.theme-clockit .arrow{background:#ffe4f1;color:#6d214f;border-color:#f9a8d4}
+body.theme-relaxar .arrow{background:#263943;color:#d7e5e8;border-color:#36515d}
+
+
+.habitLogIcon{font-size:17px;background:#f3f4f6}
+body.theme-dark .habitLogIcon{background:#1f2937;color:#f8fafc}
+body.theme-clockit .habitLogIcon{background:#ffe4f1;color:#6d214f}
+body.theme-relaxar .habitLogIcon{background:#263943;color:#d7e5e8;border:1px solid #36515d}
+
+
+.tabManageBtns{display:flex;gap:8px;margin-top:10px;align-items:center}
+.tabActionBtn{flex:0 0 auto;border:0;border-radius:999px;padding:9px 12px;font-size:13px;font-weight:900}
+.tabActionBtn.rename{background:#dbeafe;color:#1e40af}
+.tabActionBtn.delete{background:#fee2e2;color:#991b1b}
+body.theme-dark .daychecks label{background:#1f2937;border-color:#374151;color:#f8fafc}
+body.theme-dark .dayTick{background:#0b1020;border-color:#64748b}
+body.theme-dark .daychecks input:checked+.dayTick{background:#38bdf8;border-color:#38bdf8;color:#06111a}
+body.theme-dark .daychecks label:has(input:checked){background:#172554;border-color:#38bdf8;color:#dbeafe}
+body.theme-dark .tabActionBtn.rename{background:#1e3a8a;color:#dbeafe}
+body.theme-dark .tabActionBtn.delete{background:#451a1a;color:#fecaca}
+body.theme-clockit .daychecks label{background:#ffe4f1;border-color:#f9a8d4;color:#6d214f}
+body.theme-clockit .dayTick{background:#fff7fb;border-color:#f472b6}
+body.theme-clockit .daychecks input:checked+.dayTick{background:#ec4899;border-color:#ec4899;color:#fff}
+body.theme-clockit .daychecks label:has(input:checked){background:#fce7f3;border-color:#ec4899;color:#831843}
+body.theme-clockit .tabActionBtn.rename{background:#f3e8ff;color:#6b21a8}
+body.theme-clockit .tabActionBtn.delete{background:#ffe4e6;color:#9f1239}
+body.theme-relaxar .daychecks label{background:#263943;border-color:#36515d;color:#d7e5e8}
+body.theme-relaxar .dayTick{background:#182329;border-color:#5b879b}
+body.theme-relaxar .daychecks input:checked+.dayTick{background:#6f9fa0;border-color:#6f9fa0;color:#07161c}
+body.theme-relaxar .daychecks label:has(input:checked){background:#294842;border-color:#6f9fa0;color:#e8f0f2}
+body.theme-relaxar .tabActionBtn.rename{background:#36515d;color:#e8f0f2}
+body.theme-relaxar .tabActionBtn.delete{background:#4b3438;color:#f2c2c2}
+
+
+.welcomeItemChip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:#e0f2fe;color:#075985;border:1px solid #bae6fd;padding:7px 9px;font-size:12px;font-weight:900}
+.welcomeExerciseChip{background:#f3f4f6;color:#374151;border-color:#d1d5db}
+.welcomeDoneText{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.35}
+body.theme-dark .welcomeItemChip{background:#1e3a8a;color:#dbeafe;border-color:#3b82f6}
+body.theme-dark .welcomeExerciseChip{background:#1f2937;color:#f8fafc;border-color:#374151}
+body.theme-clockit .welcomeItemChip{background:#fbcfe8;color:#831843;border-color:#f472b6}
+body.theme-clockit .welcomeExerciseChip{background:#ffe4f1;color:#6d214f;border-color:#f9a8d4}
+body.theme-relaxar .welcomeItemChip{background:#36515d;color:#e8f0f2;border-color:#5b879b}
+body.theme-relaxar .welcomeExerciseChip{background:#263943;color:#d7e5e8;border-color:#36515d}
+
+
+.welcomeExerciseChip{cursor:pointer}
+
+
+.yesterdayCard{border:1px solid #e5e7eb}
+.yesterdayGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.yesterdayStat{border-radius:14px;background:#f3f4f6;padding:10px;text-align:center}
+.yesterdayBig{font-size:18px;font-weight:1000}
+.yesterdayLab{font-size:11px;color:var(--muted);font-weight:800;margin-top:3px}
+.yesterdayBtn{margin-top:10px;width:100%;border:0;border-radius:999px;background:linear-gradient(135deg,#38bdf8,#2563eb);color:#fff;padding:10px 8px;font-size:13px;font-weight:900}
+body.theme-dark .yesterdayCard{border-color:#263244}
+body.theme-dark .yesterdayStat{background:#1f2937}
+body.theme-clockit .yesterdayCard{border-color:#f9a8d4}
+body.theme-clockit .yesterdayStat{background:#ffe4f1}
+body.theme-clockit .yesterdayBtn{background:linear-gradient(135deg,#c084fc,#fb7185)}
+body.theme-relaxar .yesterdayCard{border-color:#36515d}
+body.theme-relaxar .yesterdayStat{background:#263943}
+body.theme-relaxar .yesterdayBtn{background:#5b879b;color:#07161c}
+
+
+.journalTop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.journalItem{display:flex;align-items:center;gap:9px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:9px 10px;margin:7px 0;font-size:15px}
+.journalItem.checked{background:#ecfdf5;border-color:#86efac}
+.journalItem input{width:auto;margin:0;transform:scale(1.15)}
+.journalItem span{flex:1;font-weight:800}
+.journalRemove{border:0;border-radius:999px;background:#fee2e2;color:#991b1b;padding:7px 9px;font-size:12px;font-weight:900}
+.journalActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.journalLogLine{border-radius:12px;padding:9px 10px;margin:6px 0;font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.journalLogDone{background:#dcfce7;color:#166534}
+.journalLogMiss{background:#fee2e2;color:#991b1b}
+.journalCalGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.journalCalCell{min-height:45px;border-radius:999px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-weight:900}
+.journalCalDone{background:#16a34a!important;color:#fff}
+.journalCalMiss{background:#dc2626!important;color:#fff}
+.journalCalFuture{opacity:.35}
+.journalCalHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0}
+.journalWeekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px;color:var(--muted);font-size:11px;font-weight:900;text-align:center}
+body.theme-dark .journalItem{background:#1f2937;border-color:#374151;color:#f8fafc}
+body.theme-dark .journalItem.checked{background:#064e3b;border-color:#16a34a}
+body.theme-dark .journalRemove{background:#451a1a;color:#fecaca}
+body.theme-dark .journalCalCell{background:#1f2937}
+body.theme-clockit .journalItem{background:#fff7fb;border-color:#f9a8d4;color:#331225}
+body.theme-clockit .journalItem.checked{background:#fce7f3;border-color:#ec4899}
+body.theme-clockit .journalRemove{background:#ffe4e6;color:#9f1239}
+body.theme-clockit .journalLogDone{background:#ede9fe!important;color:#4c1d95!important;border-left:6px solid #7c3aed}
+body.theme-clockit .journalLogMiss{background:#ffe4e6!important;color:#881337!important;border-left:6px solid #e11d48}
+body.theme-clockit .journalCalCell{background:#ffe4f1}
+body.theme-clockit .journalCalDone{background:#7c3aed!important}
+body.theme-clockit .journalCalMiss{background:#e11d48!important}
+body.theme-relaxar .journalItem{background:#263943;border-color:#36515d;color:#e8f0f2}
+body.theme-relaxar .journalItem.checked{background:#294842;border-color:#5f8f8a}
+body.theme-relaxar .journalRemove{background:#4b3438;color:#f2c2c2}
+body.theme-relaxar .journalLogDone{background:#294842;color:#c9f0e8}
+body.theme-relaxar .journalLogMiss{background:#3d3033;color:#e8bbbb}
+body.theme-relaxar .journalCalCell{background:#263943}
+body.theme-relaxar .journalCalDone{background:#5f8f8a!important;color:#07161c}
+body.theme-relaxar .journalCalMiss{background:#b77979!important;color:#07161c}
+
+
+.welcomeGoalBlock{margin-top:10px}
+.welcomeGoalTitle{font-size:12px;font-weight:1000;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.welcomeGoalTitle span{font-size:12px;font-weight:900;text-transform:none;letter-spacing:0}
+.welcomeHabitChip.goalDone{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.exercisePhotoTools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.exercisePhotoNote{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.35}
+.imagePreviewGrid{display:flex;gap:8px;overflow-x:auto;margin-top:8px;padding-bottom:2px}
+.imagePreviewItem{position:relative;flex:0 0 auto}
+.imagePreviewItem img{width:82px;height:82px;object-fit:cover;border-radius:12px;background:#0f172a;border:1px solid #e5e7eb}
+.imageRemoveBtn{position:absolute;top:-6px;right:-6px;border:0;border-radius:999px;background:#dc2626;color:white;width:24px;height:24px;font-size:15px;font-weight:1000;line-height:1}
+
+</style></head><body><div id="app"></div><div id="modal"></div>
+<script>
+const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+let st,currentScreen='home',habitLogType='daily',habitLogBack='habits',habitSettingsType='daily',summaryMode='daily',weeklyMonthlyOpen=false,summaryCollapsed=true,active=0,dayIndex=new Date().getDay(),editingUid=null,tempImages=[],run=[],runIndex=0,elapsed=0,currentRound=1,currentRep=1,timer=null,timerStarted=false,paused=false,calDate=new Date(),journalCalDate=new Date(),journalCalItemId=null;
+function defaults(){return{tabs:[{name:'Stretching #1',days:{}},{name:'Stretching #2',days:{}},{name:'Gym',days:{}},{name:'Cardio',days:{}}],moods:[],waterDaily:{},waterGoal:2000,waterBtn1:100,waterBtn2:500,theme:'light',habits:[],habitChecks:{},exerciseChecks:{},journalItems:[],journalChecks:{},completedDates:[],holidayDates:[],holidayMode:false,holidayStart:''}}
+function load(){try{st=JSON.parse(localStorage.getItem('stretchfit_web_mood_v2'))||defaults()}catch(e){st=defaults()}st.tabs=st.tabs||defaults().tabs;st.moods=st.moods||[];st.waterDaily=st.waterDaily||{};st.waterGoal=st.waterGoal||2000;st.waterBtn1=st.waterBtn1||100;st.waterBtn2=st.waterBtn2||500;st.theme=st.theme||'light';st.habits=st.habits||[];st.habitChecks=st.habitChecks||{};st.exerciseChecks=st.exerciseChecks||{};st.journalItems=st.journalItems||[];st.journalChecks=st.journalChecks||{};migrateJournalItems();migrateHabitsCreatedAt();migrateExerciseTabs();st.completedDates=st.completedDates||[];st.holidayDates=st.holidayDates||[];st.tabs.forEach(t=>days.forEach(d=>{t.days[d]=t.days[d]||[];t.days[d].forEach(e=>{e.uid=e.uid||uid();e.images=e.images||[]})}));syncHoliday()}
+function save(){localStorage.setItem('stretchfit_web_mood_v2',JSON.stringify(st))}
+
+function exportStretchFitData(){
+  try{
+    save();
+    let data=localStorage.getItem('stretchfit_web_mood_v2')||JSON.stringify(st||defaults());
+    let blob=new Blob([data],{type:'application/json'});
+    let a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='stretchfit-backup-'+todayKey()+'.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0);
+  }catch(e){
+    alert('Could not export data.');
+  }
+}
+function importStretchFitData(input){
+  let file=input.files&&input.files[0];
+  if(!file)return;
+  let reader=new FileReader();
+  reader.onerror=()=>alert('Could not read backup file.');
+  reader.onload=()=>{
+    try{
+      let imported=JSON.parse(reader.result);
+      if(!imported||typeof imported!=='object'||!Array.isArray(imported.tabs))throw new Error('This is not a valid StretchFit backup file.');
+      if(!confirm('Import this backup? It will replace the StretchFit data saved on this URL.'))return;
+      localStorage.setItem('stretchfit_web_mood_v2',JSON.stringify(imported));
+      load();
+      save();
+      modal('');
+      render();
+      alert('StretchFit data imported.');
+    }catch(e){
+      alert(e&&e.message?e.message:'Could not import data.');
+    }finally{
+      input.value='';
+    }
+  };
+  reader.readAsText(file);
+}
+function migrateExerciseTabs(){let changed=false;(st.tabs||[]).forEach(t=>{if(!t.id){t.id=uid();changed=true}});if(changed)save()}
+
+function uid(){return'e'+Date.now()+Math.floor(Math.random()*99999)}function tab(){return st.tabs[active]||st.tabs[0]}function list(d=days[dayIndex]){tab().days[d]=tab().days[d]||[];return tab().days[d]}function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function meta(e){let a=[];if(+e.secs)a.push(e.secs+' seconds');if(+e.reps)a.push(e.reps+(+e.secs?' rounds':' reps'));return a.join(' + ')||'No time/reps'}
+function root(h){document.getElementById('app').innerHTML=h}function modal(h){document.getElementById('modal').innerHTML=h||''}
+function topHtml(){let homeActive=['home','moodlog','moodcalendar','waterlog','exerciselog'].includes(currentScreen)||(currentScreen==='habitlog'&&habitLogBack==='home'),exActive=['routine','edit','calendar'].includes(currentScreen),habActive=currentScreen==='habits'||(currentScreen==='habitlog'&&habitLogBack!=='home'),trendsActive=currentScreen==='trends',journalActive=['journal','journallog','journalcalendar'].includes(currentScreen);let html=`<div class="top"></div><div class="tabs mainTabs"><button class="tab ${homeActive?'active':''}" onclick="currentScreen='home';render()">Home</button><button class="tab ${journalActive?'active':''}" onclick="currentScreen='journal';render()">Journal</button><button class="tab ${exActive?'active':''}" onclick="currentScreen='routine';render()">Exercise</button><button class="tab ${habActive?'active':''}" onclick="currentScreen='habits';render()">Habits</button><button class="tab ${trendsActive?'active':''}" onclick="currentScreen='trends';render()">Trends</button><button class="navThemeBtn navConfigBtn" onclick="openConfig()" aria-label="Settings">⚙︎</button></div>${st.holidayMode?'<div class="holidayActiveBar">Holiday mode active</div>':''}`;if(exActive)html+=exerciseTabsHtml();return html}
+function exerciseTabsHtml(){return`<div class="tabs subTabs">${st.tabs.map((t,i)=>`<button class="tab ${i===active?'active':''}" onclick="active=${i};currentScreen='routine';render()">${esc(t.name)}</button>`).join('')}<button class="tab" onclick="addTab()">+ Tab</button></div>`}
+function render(){applyTheme();syncHoliday();if(currentScreen==='routine')return routine();if(currentScreen==='edit')return edit();if(currentScreen==='calendar')return calendar();if(currentScreen==='moodlog')return moodLog();if(currentScreen==='moodcalendar')return moodCalendar();if(currentScreen==='waterlog')return waterLog();if(currentScreen==='exerciselog')return exerciseLog();if(currentScreen==='habitlog')return habitLog();if(currentScreen==='journal')return journalPage();if(currentScreen==='journallog')return journalLog();if(currentScreen==='journalcalendar')return journalCalendar();if(currentScreen==='habits')return habitsPage();if(currentScreen==='trends')return trendsPage();if(currentScreen==='timer')return timerScreen();if(currentScreen==='complete')return completeScreen();home()}
+
+function summaryHomeHtml(){let mode=summaryMode||'daily';let body=summaryCollapsed?'':`<div class="summaryTabs"><button class="summaryTab ${mode==='daily'?'active':''}" onclick="event.stopPropagation();summaryMode='daily';render()">Daily</button><button class="summaryTab ${mode==='weekly'?'active':''}" onclick="event.stopPropagation();summaryMode='weekly';render()">Weekly</button><button class="summaryTab ${mode==='monthly'?'active':''}" onclick="event.stopPropagation();summaryMode='monthly';render()">Monthly</button></div>${mode==='daily'?summaryDailyHtml():mode==='weekly'?summaryWeeklyHtml():summaryMonthlyHtml()}`;return `<div class="card summaryCard"><div class="name summaryHeader" onclick="summaryCollapsed=!summaryCollapsed;render()">Summary <span class="summaryChevron">${summaryCollapsed?'▾':'▴'}</span></div>${body}</div>`}
+function summaryDailyHtml(){let now=new Date(),today=todayKey(),yest=dateKey(addDays(now,-1)),wat=waterToday(),diff=wat-(+st.waterDaily[yest]||0),mc=moodCounts(dayStart(now),dayEnd(now)),hc=habitDoneTotal('daily',habitPeriodKey('daily',now)),ht=habitsByType('daily').length,planned=plannedExercisesOnDate(now),done=isDone(today),miss=done?0:planned;return `<div class="summaryLine">💧 Water: <span class="summaryMetric">${wat}ml</span> — ${mlCompare(diff,'yesterday')}</div><div class="summaryLine">🏋️ Routines: ${done?`<span class="summaryGood">completed today</span>`:`<span class="summaryWarn">not completed yet</span>`}. Planned exercises: <span class="summaryMetric">${planned}</span>. Missed: <span class="${miss?'summaryWarn':'summaryGood'}">${miss}</span>.</div><div class="summaryLine">🙂 Mood: <span class="summaryMetric">${mc.total}</span> entries today — ${moodText(mc)}.</div><div class="summaryLine">✅ Habits: <span class="${hc===ht&&ht?'summaryGood':hc?'summaryNeutral':'summaryWarn'}">${hc}/${ht}</span> daily habits done.</div>`}
+function summaryWeeklyHtml(){let now=new Date(),s=weekStart(now),e=dayEnd(now),ps=addDays(s,-7),pe=addDays(s,-1),wat=sumWater(s,e),prev=sumWater(ps,dayEnd(pe)),mc=moodCounts(s,e),planned=plannedRoutineDays(s,e),comp=completedCount(s,e),hol=holidayCount(s,e),miss=Math.max(0,planned-comp-hol),daily=habitRangeStats('daily',s,e),weekly=habitDoneTotal('weekly',habitPeriodKey('weekly',now)),weeklyTotal=habitsByType('weekly').length;return `<div class="summaryLine">💧 Water this week: <span class="summaryMetric">${wat}ml</span> — ${mlCompare(wat-prev,'last week')}</div><div class="summaryLine">🏋️ Routines: <span class="summaryGood">${comp}</span> completed day${comp===1?'':'s'}, <span class="summaryWarn">${miss}</span> missed planned day${miss===1?'':'s'}.</div><div class="summaryLine">🙂 Mood this week: <span class="summaryMetric">${mc.total}</span> entries — ${moodText(mc)}.</div><div class="summaryLine">✅ Habits: daily <span class="summaryMetric">${daily.done}/${daily.total}</span>, weekly <span class="summaryMetric">${weekly}/${weeklyTotal}</span>.</div>`}
+function summaryMonthlyHtml(){let now=new Date(),s=new Date(now.getFullYear(),now.getMonth(),1),e=dayEnd(now),ps=new Date(now.getFullYear(),now.getMonth()-1,1),pe=dayEnd(new Date(now.getFullYear(),now.getMonth(),0)),wat=sumWater(s,e),prev=sumWater(ps,pe),mc=moodCounts(s,e),planned=plannedRoutineDays(s,e),comp=completedCount(s,e),hol=holidayCount(s,e),miss=Math.max(0,planned-comp-hol),daily=habitRangeStats('daily',s,e),weekly=habitRangeStats('weekly',s,e),monthly=habitDoneTotal('monthly',habitPeriodKey('monthly',now)),monthlyTotal=habitsByType('monthly').length;return `<div class="summaryLine">💧 Water this month: <span class="summaryMetric">${wat}ml</span> — ${mlCompare(wat-prev,'last month')}</div><div class="summaryLine">🏋️ Routines: <span class="summaryGood">${comp}</span> completed day${comp===1?'':'s'}, <span class="summaryWarn">${miss}</span> missed planned day${miss===1?'':'s'}.</div><div class="summaryLine">🙂 Mood this month: <span class="summaryMetric">${mc.total}</span> entries — ${moodText(mc)}.</div><div class="summaryLine">✅ Habits: daily <span class="summaryMetric">${daily.done}/${daily.total}</span>, weekly <span class="summaryMetric">${weekly.done}/${weekly.total}</span>, monthly <span class="summaryMetric">${monthly}/${monthlyTotal}</span>.</div>`}
+function dayStart(d){let x=new Date(d);x.setHours(0,0,0,0);return x}
+function dayEnd(d){let x=new Date(d);x.setHours(23,59,59,999);return x}
+function sumWater(start,end){let total=0,d=dayStart(start),last=dayStart(end);while(d<=last){total+=+((st.waterDaily||{})[dateKey(d)]||0);d=addDays(d,1)}return total}
+function mlCompare(diff,label){if(diff>0)return `<span class="summaryGood">${diff}ml more</span> than ${label}`;if(diff<0)return `<span class="summaryWarn">${Math.abs(diff)}ml less</span> than ${label}`;return `<span class="summaryNeutral">same as</span> ${label}`}
+function moodCounts(start,end){let c={sad:0,neutral:0,happy:0,total:0};(st.moods||[]).forEach(m=>{let d=new Date(m.date);if(d>=start&&d<=end){c.total++;if(c[m.type]!==undefined)c[m.type]++}});return c}
+function moodText(c){return `😊 ${c.happy} happy, 😐 ${c.neutral} neutral, 😞 ${c.sad} sad`}
+function plannedExercisesOnDate(d){let day=days[d.getDay()];return (st.tabs||[]).reduce((n,t)=>n+(((t.days||{})[day]||[]).length),0)}
+function plannedRoutineDays(start,end){let n=0,d=dayStart(start),last=dayStart(end);while(d<=last){if(plannedExercisesOnDate(d)>0)n++;d=addDays(d,1)}return n}
+function plannedExerciseTabsOnDate(d){let day=days[d.getDay()];return (st.tabs||[]).filter(t=>(((t.days||{})[day]||[]).length)>0)}
+function exerciseTabDoneOn(t,d){let k=dateKey(d),a=((st.exerciseChecks||{})[k]||[]);if(a.includes(t.id))return true;if((!st.exerciseChecks||!st.exerciseChecks[k]||!st.exerciseChecks[k].length)&&isDone(k))return true;return false}
+function markExerciseTabToday(){endHoliday();let k=todayKey();st.exerciseChecks=st.exerciseChecks||{};let a=st.exerciseChecks[k]||[];let id=tab().id;if(id&&!a.includes(id))a.push(id);st.exerciseChecks[k]=a;if(!st.completedDates.includes(k))st.completedDates.push(k);save()}
+function exerciseItemsLeftOn(d){let day=days[d.getDay()],tabs=plannedExerciseTabsOnDate(d);return tabs.reduce((n,t)=>n+(exerciseTabDoneOn(t,d)?0:(((t.days||{})[day]||[]).length)),0)}
+function exerciseLogKeys(){let set=new Set(),now=new Date();for(let i=0;i<14;i++){let d=addDays(now,-i);if(plannedExerciseTabsOnDate(d).length)set.add(dateKey(d))}Object.keys(st.exerciseChecks||{}).forEach(k=>set.add(k));return [...set].sort((a,b)=>new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))}
+function exerciseLog(){let keys=exerciseLogKeys();root(topHtml()+`<div class="content"><div class="title">Exercise log</div>${keys.length?keys.map(k=>{let d=new Date(k+'T00:00:00'),tabs=plannedExerciseTabsOnDate(d);return `<div class="logDate">${longDate(d)}</div><div class="logEntry">${tabs.length?tabs.map(t=>exerciseTabDoneOn(t,d)?`<div class="exerciseLogLine exerciseLogDone">✓ ${esc(t.name)} <span class="small">(${(((t.days||{})[days[d.getDay()]]||[]).length)} exercises)</span></div>`:`<div class="exerciseLogLine exerciseLogMiss">✕ ${esc(t.name)} <span class="small">(${(((t.days||{})[days[d.getDay()]]||[]).length)} exercises)</span></div>`).join(''):`<div class="small">No exercise tabs planned.</div>`}</div>`}).join(''):`<div class="card">No exercise history yet.</div>`}</div><div class="bottom"><button class="btn dark" onclick="currentScreen='home';render()">Back</button></div>`)}
+
+function habitDoneTotal(type,key){let ids=habitsByType(type).filter(h=>habitExistedInPeriod(h,key)).map(h=>h.id),done=((st.habitChecks||{})[key]||[]);return ids.filter(id=>done.includes(id)).length}
+function habitRangeStats(type,start,end){let total=0,done=0;if(type==='daily'){let d=dayStart(start),last=dayStart(end);while(d<=last){let k=habitPeriodKey('daily',d),count=habitsByType('daily').filter(h=>habitExistedInPeriod(h,k)).length;total+=count;done+=habitDoneTotal('daily',k);d=addDays(d,1)}}else if(type==='weekly'){let seen=new Set(),d=dayStart(start),last=dayStart(end);while(d<=last){seen.add(habitPeriodKey('weekly',d));d=addDays(d,1)}seen.forEach(k=>{total+=habitsByType('weekly').filter(h=>habitExistedInPeriod(h,k)).length;done+=habitDoneTotal('weekly',k)})}else{let seen=new Set(),d=dayStart(start),last=dayStart(end);while(d<=last){seen.add(habitPeriodKey('monthly',d));d=addDays(d,1)}seen.forEach(k=>{total+=habitsByType('monthly').filter(h=>habitExistedInPeriod(h,k)).length;done+=habitDoneTotal('monthly',k)})}return {done,total}}
+
+function exerciseItemsLeftToday(){return exerciseItemsLeftOn(new Date())}
+function dailyHabitsLeftToday(){let total=habitsByType('daily').length,done=habitDoneTotal('daily',habitPeriodKey('daily',new Date()));return Math.max(0,total-done)}
+function dailyCompleteOn(d){return dayWaterDone(d)&&dailyHabitsDoneOn(d)&&exercisesDoneOn(d)}
+function dailyEverythingStreak(){let d=dayStart(new Date()),n=0;if(!dailyCompleteOn(d))d=addDays(d,-1);while(dailyCompleteOn(d)){n++;d=addDays(d,-1)}return n}
+function dailyStreakTitle(){return 'Daily streak'}
+
+function dailyStreakGoal(){return Math.max(1,+st.dailyStreakGoal||100)}
+function openDailyStreakGoal(){modal(`<div class="overlay"><div class="sheet"><div class="title">Daily streak goal</div><div class="meta">Choose the target number of straight days.</div><input id="dailyStreakGoalInput" type="number" value="${dailyStreakGoal()}" placeholder="Goal days"><div style="display:flex;gap:8px;margin-top:8px"><button class="btn green" onclick="saveDailyStreakGoal()">Save</button><button class="btn" onclick="modal('')">Cancel</button></div></div></div>`);setTimeout(()=>document.getElementById('dailyStreakGoalInput')?.focus(),100)}
+function saveDailyStreakGoal(){let v=Math.max(1,Math.round(+document.getElementById('dailyStreakGoalInput').value||100));st.dailyStreakGoal=v;save();modal('');render()}
+
+function mixHex(a,b,p){let ah=parseInt(a.slice(1),16),bh=parseInt(b.slice(1),16),ar=ah>>16,ag=ah>>8&255,ab=ah&255,br=bh>>16,bg=bh>>8&255,bb=bh&255;let rr=Math.round(ar+(br-ar)*p),rg=Math.round(ag+(bg-ag)*p),rb=Math.round(ab+(bb-ab)*p);return `rgb(${rr},${rg},${rb})`}
+function streakGoalColor(streak,goal){let p=Math.max(0,Math.min(1,streak/Math.max(1,goal)));if(st&&st.theme==='clockit')return p<0.5?mixHex('#be123c','#ec4899',p*2):mixHex('#ec4899','#7c3aed',(p-0.5)*2);if(st&&st.theme==='relaxar')return p<0.5?mixHex('#5b879b','#6f9fa0',p*2):mixHex('#6f9fa0','#a9d1c9',(p-0.5)*2);let hue=Math.round(0+(120*p));return `hsl(${hue},75%,42%)`}
+
+function yesterdayDate(){return addDays(new Date(),-1)}
+function waterOnDate(d){return +((st.waterDaily||{})[dateKey(d)]||0)}
+function dailyHabitStatsOn(d){let key=habitPeriodKey('daily',d),hs=habitsByType('daily').filter(h=>habitExistedInPeriod(h,key)),done=((st.habitChecks||{})[key]||[]);return {key,habits:hs,done:hs.filter(h=>done.includes(h.id)).length,total:hs.length,doneIds:done}}
+function yesterdayEditHtml(){let d=yesterdayDate(),w=waterOnDate(d),goal=waterGoal(),waterDone=w>=goal,hs=dailyHabitStatsOn(d),habDone=hs.total===0||hs.done>=hs.total;return `<div class="card yesterdayCard"><div class="waterTop"><div class="name">Yesterday</div></div><div class="yesterdayGrid"><div class="yesterdayStat"><div class="yesterdayBig ${waterDone?'summaryGood':'summaryWarn'}">${w}ml</div><div class="yesterdayLab">Water ${waterDone?'✓':'•'} / ${goal}ml</div></div><div class="yesterdayStat"><div class="yesterdayBig ${habDone?'summaryGood':'summaryWarn'}">${hs.done}/${hs.total}</div><div class="yesterdayLab">Daily habits ${habDone?'✓':'•'}</div></div></div><button class="yesterdayBtn" onclick="openEditYesterday()">Edit yesterday</button></div>`}
+function openEditYesterday(){let d=yesterdayDate(),k=dateKey(d),hs=dailyHabitStatsOn(d),w=waterOnDate(d);modal(`<div class="overlay"><div class="sheet"><div class="title">Edit yesterday</div><div class="meta">${longDate(d)}</div><div class="habitSectionTitle">Water</div><input id="yesterdayWaterInput" type="number" value="${w}" placeholder="Water ml"><div class="small">Goal: ${waterGoal()}ml</div><div class="habitSectionTitle">Daily habits</div>${hs.habits.length?hs.habits.map(h=>`<label class="habitItem ${hs.doneIds.includes(h.id)?'checked':''}"><input class="yesterdayHabitCheck" type="checkbox" value="${h.id}" ${hs.doneIds.includes(h.id)?'checked':''}><span>${esc(h.name)}</span></label>`).join(''):`<div class="small">No daily habits existed yesterday.</div>`}<div style="display:flex;gap:8px;margin-top:10px"><button class="btn green" onclick="saveYesterdayEdit()">Save</button><button class="btn" onclick="modal('')">Cancel</button></div><div class="small" style="margin-top:8px">Daily streak recalculates from water, daily habits, and exercise completion.</div></div></div>`);setTimeout(()=>document.getElementById('yesterdayWaterInput')?.focus(),100)}
+function saveYesterdayEdit(){let d=yesterdayDate(),dk=dateKey(d),stats=dailyHabitStatsOn(d),hk=stats.key;st.waterDaily=st.waterDaily||{};st.waterDaily[dk]=Math.max(0,Math.round(+document.getElementById('yesterdayWaterInput').value||0));st.habitChecks=st.habitChecks||{};let checked=[...document.querySelectorAll('.yesterdayHabitCheck:checked')].map(x=>x.value);st.habitChecks[hk]=checked;save();modal('');render()}
+
+function dailyStreakHtml(){let now=new Date(),waterDone=dayWaterDone(now),habitDone=dailyHabitsDoneOn(now),exerciseDone=exercisesDoneOn(now),score=[waterDone,habitDone,exerciseDone].filter(Boolean).length,streak=dailyEverythingStreak(),goal=dailyStreakGoal(),streakColor=streakGoalColor(streak,goal),habitLeft=dailyHabitsLeftToday(),exLeft=exerciseItemsLeftToday();return `<div class="card dailyStreakCard"><div class="dailyStreakTop"><div><div class="name">${dailyStreakTitle()}</div></div><div style="text-align:right"><div class="dailyStreakNumber" style="color:${streakColor}">${streak}d / <button class="streakGoalBtn" onclick="openDailyStreakGoal()">${goal}</button></div></div></div><div class="progress"><div class="fill" style="width:${score/3*100}%"></div></div><div class="dailyPillRow"><div class="dailyPill ${waterDone?'done':''}">${waterDone?'✓':'•'} Water</div><div class="dailyPill ${habitDone?'done':''}" onclick="openHabitLog('daily')">${habitDone?'✓':'•'} Habits ${habitLeft?habitLeft+' left':''}</div><div class="dailyPill ${exerciseDone?'done':''}" onclick="currentScreen='exerciselog';render()">${exerciseDone?'✓':'•'} Exercise ${exLeft?exLeft+' left':''}</div></div></div>`}
+
+function weekEnd(d=new Date()){return dayEnd(addDays(weekStart(d),6))}
+function monthStart(d=new Date()){let x=new Date(d);return new Date(x.getFullYear(),x.getMonth(),1)}
+function monthEnd(d=new Date()){let x=new Date(d);return dayEnd(new Date(x.getFullYear(),x.getMonth()+1,0))}
+function shortDate(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
+function weekHabitProgress(){let now=new Date(),wk=habitPeriodKey('weekly',now),weeklyTotal=habitsByType('weekly').filter(h=>habitExistedInPeriod(h,wk)).length,weeklyDone=habitDoneTotal('weekly',wk);return {done:weeklyDone,total:weeklyTotal,start:weekStart(now),end:weekEnd(now)}}
+function monthHabitProgress(){let now=new Date(),mk=habitPeriodKey('monthly',now),monthlyTotal=habitsByType('monthly').filter(h=>habitExistedInPeriod(h,mk)).length,monthlyDone=habitDoneTotal('monthly',mk);return {done:monthlyDone,total:monthlyTotal,start:monthStart(now),end:monthEnd(now)}}
+function dayWaterDone(d){return +((st.waterDaily||{})[dateKey(d)]||0)>=waterGoal()}
+function dailyHabitsDoneOn(d){let key=habitPeriodKey('daily',d),total=habitsByType('daily').filter(h=>habitExistedInPeriod(h,key)).length,done=habitDoneTotal('daily',key);return total===0||done>=total}
+function exercisesDoneOn(d){let tabs=plannedExerciseTabsOnDate(d);return tabs.length===0||tabs.every(t=>exerciseTabDoneOn(t,d))}
+function weekHabitsDoneOn(d){let k=habitPeriodKey('weekly',d),total=habitsByType('weekly').filter(h=>habitExistedInPeriod(h,k)).length,done=habitDoneTotal('weekly',k);return total===0||done>=total}
+function monthHabitsDoneOn(d){let k=habitPeriodKey('monthly',d),total=habitsByType('monthly').filter(h=>habitExistedInPeriod(h,k)).length,done=habitDoneTotal('monthly',k);return total===0||done>=total}
+function fiveOutOfFiveDoneOn(d){return dayWaterDone(d)&&dailyHabitsDoneOn(d)&&exercisesDoneOn(d)&&weekHabitsDoneOn(d)&&monthHabitsDoneOn(d)}
+function fiveOutOfFiveStreak(){let d=dayStart(new Date()),n=0;if(!fiveOutOfFiveDoneOn(d))d=addDays(d,-1);while(fiveOutOfFiveDoneOn(d)){n++;d=addDays(d,-1)}return n}
+
+
+
+function missionTitle(){return 'Weekly & monthly'}
+function openNameSetup(canCancel=false){modal(`<div class="overlay"><div class="sheet"><div class="title">What should I call you?</div><div class="meta">This personalises your home page. It only saves on this phone/browser.</div><input id="userNameInput" placeholder="Your name" value="${esc(st.userName||'')}"><div style="display:flex;gap:8px;margin-top:8px"><button class="btn green" onclick="saveUserName()">Save</button>${canCancel?`<button class="btn" onclick="modal('')">Cancel</button>`:''}</div></div></div>`);setTimeout(()=>document.getElementById('userNameInput')?.focus(),100)}
+function saveUserName(){let v=document.getElementById('userNameInput').value.trim();st.userName=v||'My';save();modal('');render()}
+function maybeAskName(){if(!(st.userName||'').trim())setTimeout(()=>openNameSetup(false),350)}
+function todayMissionHtml(){let weekProg=weekHabitProgress(),monthProg=monthHabitProgress(),weekDoneOk=weekProg.total===0||weekProg.done>=weekProg.total,monthDoneOk=monthProg.total===0||monthProg.done>=monthProg.total,total=weekProg.total+monthProg.total,done=weekProg.done+monthProg.done,pct=total?Math.min(100,done/total*100):100,body=weeklyMonthlyOpen?`<div class="missionGrid"><div class="missionItem ${weekDoneOk?'done':''}" onclick="event.stopPropagation();openHabitLog('weekly')"><div><div class="missionLabel">Week</div><div class="missionSmall">${daysLeftText(daysLeftThisWeek())}</div></div><div class="missionValue">${weekProg.done}/${weekProg.total}</div></div><div class="missionItem ${monthDoneOk?'done':''}" onclick="event.stopPropagation();openHabitLog('monthly')"><div><div class="missionLabel">Month</div><div class="missionSmall">${daysLeftText(daysLeftThisMonth())}</div></div><div class="missionValue">${monthProg.done}/${monthProg.total}</div></div></div>`:'';return `<div class="card missionCard"><div class="missionHead" onclick="weeklyMonthlyOpen=!weeklyMonthlyOpen;render()"><div><div class="name">${missionTitle()}</div></div><div class="missionLeftText">${done}/${total} <span class="missionChevron">${weeklyMonthlyOpen?'▴':'▾'}</span></div></div><div class="progress"><div class="fill" style="width:${pct}%"></div></div>${body}</div>`}
+
+function firstName(){let n=(st.userName||'').trim();return n?n.split(/\s+/)[0]:'there'}
+function timeGreeting(){let h=new Date().getHours();if(h<12)return 'Morning';if(h<18)return 'Afternoon';return 'Evening'}
+function nextTinyWin(){let waterLeft=Math.max(0,waterGoal()-waterToday()),habitsLeft=dailyHabitsLeftToday(),exLeft=exerciseItemsLeftToday();if(waterLeft>0)return `Drink ${Math.min(waterLeft,st.waterBtn1||100)}ml water`;if(habitsLeft>0)return `Tick one habit`;if(exLeft>0)return `Start one exercise tab`;return `You’ve done the daily basics`}
+
+function daysLeftText(n){return n===1?'1 day left':`${n} days left`}
+function daysLeftThisWeek(){let now=dayStart(new Date()),end=dayStart(weekEnd(new Date()));return Math.max(0,Math.round((end-now)/86400000))}
+function daysLeftThisMonth(){let now=dayStart(new Date()),end=dayStart(monthEnd(new Date()));return Math.max(0,Math.round((end-now)/86400000))}
+function exerciseDoneTabsCount(start,end){let n=0,d=dayStart(start),last=dayStart(end);while(d<=last){plannedExerciseTabsOnDate(d).forEach(t=>{if(exerciseTabDoneOn(t,d))n++});d=addDays(d,1)}return n}
+function compareAmount(diff,unit){if(diff>0)return `<span class="summaryGood">${diff}${unit} more</span>`;if(diff<0)return `<span class="summaryWarn">${Math.abs(diff)}${unit} less</span>`;return `<span class="summaryNeutral">same</span>`}
+function comparisonPeriod(){let now=new Date();if(now.getDate()===1){let s=new Date(now.getFullYear(),now.getMonth()-1,1),e=dayEnd(new Date(now.getFullYear(),now.getMonth(),0)),ps=new Date(now.getFullYear(),now.getMonth()-2,1),pe=dayEnd(new Date(now.getFullYear(),now.getMonth()-1,0));return {label:'Last month vs month before',s,e,ps,pe}}let ws=weekStart(now),s=addDays(ws,-7),e=dayEnd(addDays(ws,-1)),ps=addDays(ws,-14),pe=dayEnd(addDays(ws,-8));return {label:'Last week vs week before',s,e,ps,pe}}
+function welcomeComparisonHtml(){let p=comparisonPeriod(),water=sumWater(p.s,p.e),prevWater=sumWater(p.ps,p.pe),exercise=exerciseDoneTabsCount(p.s,p.e),prevExercise=exerciseDoneTabsCount(p.ps,p.pe),happy=moodCounts(p.s,p.e).happy,prevHappy=moodCounts(p.ps,p.pe).happy;return `<div class="welcomeNext"><b>${p.label}</b><div class="welcomeCompareLine">Water: ${compareAmount(water-prevWater,'ml')}</div><div class="welcomeCompareLine">Exercise: ${compareAmount(exercise-prevExercise,'')} tabs</div><div class="welcomeCompareLine">Happy faces: ${compareAmount(happy-prevHappy,'')}</div></div>`}
+
+function openExerciseTabFromHome(id){let i=(st.tabs||[]).findIndex(t=>t.id===id);if(i>=0)active=i;currentScreen='routine';render()}
+
+function welcomePeriodGoalsHtml(type,label){
+ let now=new Date(),key=habitPeriodKey(type,now),goals=habitsByType(type).filter(h=>habitExistedInPeriod(h,key));
+ if(!goals.length)return '';
+ let done=goals.filter(h=>habitIsDone(h,key)).length;
+ return `<div class="welcomeGoalBlock"><div class="welcomeGoalTitle">${label}<span>${done}/${goals.length}</span></div><div class="welcomeHabitList">${goals.map(h=>`<label class="welcomeHabitChip ${habitIsDone(h,key)?'goalDone':''}"><input type="checkbox" ${habitIsDone(h,key)?'checked':''} onchange="toggleHabit('${h.id}','${type}')"><span>${esc(h.name)}</span></label>`).join('')}</div></div>`;
+}
+function welcomeLeftTodayHtml(){
+ let now=new Date(),items=[],hk=habitPeriodKey('daily',now),habits=habitsByType('daily').filter(h=>habitExistedInPeriod(h,hk)&&!habitIsDone(h,hk));
+ habits.forEach(h=>items.push(`<label class="welcomeHabitChip"><input type="checkbox" onchange="toggleHabit('${h.id}','daily')"><span>${esc(h.name)}</span></label>`));
+ let waterLeft=Math.max(0,waterGoal()-waterToday());
+ if(waterLeft>0)items.push(`<span class="welcomeItemChip">💧 ${waterLeft}ml water left</span>`);
+ let exTabs=plannedExerciseTabsOnDate(now).filter(t=>!exerciseTabDoneOn(t,now));
+ exTabs.forEach(t=>{let count=(((t.days||{})[days[now.getDay()]]||[]).length);items.push(`<span class="welcomeItemChip welcomeExerciseChip" onclick="openExerciseTabFromHome('${t.id}')">${esc(t.name)}${count?' · '+count:''}</span>`)});
+ let todayHtml=items.length?`<div class="welcomeHabitText">Here’s what you have left today:</div><div class="welcomeHabitList">${items.join('')}</div>`:`<div class="welcomeDoneText">Everything is done for today.</div>`;
+ return todayHtml+welcomePeriodGoalsHtml('weekly','This week')+welcomePeriodGoalsHtml('monthly','This month');
+}
+
+function welcomeHtml(){return `<div class="card welcomeCard"><div class="welcomeTop"><div><div class="welcomeHi">Hi ${esc(firstName())}! 😊</div>${welcomeLeftTodayHtml()}</div></div></div>`}
+function home(){let wd=weekDone(),sk=streak(),wat=waterToday(),goal=waterGoal(),pct=Math.min(100,Math.round(wat/goal*100)),cls=waterClass(wat),fill=waterFillClass(wat);root(topHtml()+`<div class="content">${welcomeHtml()}${dailyStreakHtml()}<div class="card moodCard"><div class="title">How are you feeling?</div><div class="moodRow"><div class="moodFaces"><button class="moodBtn" onclick="openMood('sad','😞')">😞</button><button class="moodBtn" onclick="openMood('neutral','😐')">😐</button><button class="moodBtn" onclick="openMood('happy','😊')">😊</button></div><div class="moodIconBtns"><button class="moodMiniBtn" onclick="currentScreen='moodlog';render()" aria-label="Mood log">☰</button><button class="moodMiniBtn" onclick="currentScreen='moodcalendar';render()" aria-label="Mood calendar">▦</button></div></div></div><div class="card"><div class="waterTop"><div class="name">Water today</div><button class="cog" onclick="openWaterSettings()" aria-label="Water settings">⚙︎</button></div><div class="waterAmount ${cls}" onclick="openSetWater()">${wat}ml</div><div class="waterGoal">Goal: ${goal}ml</div><div class="progress"><div class="fill ${fill}" style="width:${pct}%"></div></div><div class="waterBtns"><button class="waterBtn" onclick="addWater(st.waterBtn1)">+${st.waterBtn1}ml</button><button class="waterBtn" onclick="addWater(st.waterBtn2)">+${st.waterBtn2}ml</button><button class="waterBtn waterBtnLog" onclick="currentScreen='waterlog';render()">Water log</button></div></div>${yesterdayEditHtml()}</div>`)}
+function openMood(type,emoji){modal(`<div class="overlay"><div class="sheet"><div class="title">${emoji} Why?</div><textarea id="moodReason" placeholder="Write your reason..."></textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn green" onclick="saveMood('${type}','${emoji}')">Save</button><button class="btn" onclick="modal('')">Cancel</button></div></div></div>`)}
+function saveMood(type,emoji){let reason=document.getElementById('moodReason').value.trim();st.moods.unshift({type,emoji,reason,date:new Date().toISOString()});save();modal('');home()}
+
+function applyTheme(){if(st&&st.theme==='porto')st.theme='relaxar';document.body.classList.remove('theme-dark','theme-clockit','theme-relaxar');if(st&&st.theme==='dark')document.body.classList.add('theme-dark');if(st&&st.theme==='clockit')document.body.classList.add('theme-clockit');if(st&&st.theme==='relaxar')document.body.classList.add('theme-relaxar')}
+function themeName(){return st.theme==='dark'?'Dark mode':st.theme==='clockit'?'Clock It mode':st.theme==='relaxar'?'Relaxar':'Light mode'}
+
+function openConfig(){modal(`<div class="overlay"><div class="sheet"><div class="title">Settings</div><div class="configPick"><button class="btn" onclick="openTheme()">Theme</button><button class="btn" onclick="openNameSetup(true)">Change name</button><button class="btn ${st.holidayMode?'blue':''}" onclick="toggleHoliday();openConfig()">${st.holidayMode?'Holiday mode: ON':'Holiday mode: OFF'}</button><button class="btn blue" onclick="exportStretchFitData()">Export backup</button><button class="btn green" onclick="document.getElementById('stretchFitImportFile').click()">Import backup</button><input id="stretchFitImportFile" type="file" accept="application/json,.json" style="display:none" onchange="importStretchFitData(this)"></div><div class="small" style="margin-top:8px">Use Export on the old URL, then Import on the new URL.</div><button class="btn" style="margin-top:10px" onclick="modal('')">Close</button></div></div>`)}
+function openTheme(){modal(`<div class="overlay"><div class="sheet"><div class="title">Choose theme</div><div class="meta">Current: ${themeName()}</div><div class="themePick"><button class="btn" onclick="setThemeMode('light')">☀️ Light mode</button><button class="btn dark" onclick="setThemeMode('dark')">🌙 Dark mode</button><button class="btn green" onclick="setThemeMode('clockit')">✨ Clock It mode</button><button class="btn blue" onclick="setThemeMode('relaxar')">🌙 Relaxar</button></div><button class="btn" style="margin-top:10px" onclick="modal('')">Cancel</button></div></div>`)}
+function setThemeMode(mode){st.theme=mode==='porto'?'relaxar':mode;save();applyTheme();modal('');render()}
+function waterGoal(){return Math.max(1,+st.waterGoal||2000)}
+function waterToday(){return +st.waterDaily[todayKey()]||0}
+function setWater(v){st.waterDaily[todayKey()]=Math.max(0,Math.round(+v||0));save();render()}
+function addWater(v){setWater(waterToday()+(+v||0))}
+function waterClass(v){let g=waterGoal();return v>=g?'waterStatusGreen':v>=g/2?'waterStatusOrange':'waterStatusRed'}
+function waterFillClass(v){let g=waterGoal();return v>=g?'waterFillGreen':v>=g/2?'waterFillOrange':'waterFillRed'}
+function openSetWater(){modal(`<div class="overlay"><div class="sheet"><div class="title">Set today's water</div><input id="waterManual" type="number" value="${waterToday()}" placeholder="ml"><div style="display:flex;gap:8px;margin-top:8px"><button class="btn green" onclick="saveManualWater()">Save</button><button class="btn" onclick="modal('')">Cancel</button></div></div></div>`);setTimeout(()=>document.getElementById('waterManual')?.focus(),100)}
+function saveManualWater(){let v=document.getElementById('waterManual').value;modal('');setWater(v)}
+function openWaterSettings(){modal(`<div class="overlay"><div class="sheet"><div class="title">Water settings</div><input id="waterGoalInput" type="number" value="${waterGoal()}" placeholder="Daily goal ml"><input id="waterBtn1Input" type="number" value="${st.waterBtn1||100}" placeholder="Button 1 ml"><input id="waterBtn2Input" type="number" value="${st.waterBtn2||500}" placeholder="Button 2 ml"><div style="display:flex;gap:8px;margin-top:8px"><button class="btn green" onclick="saveWaterSettings()">Save</button><button class="btn" onclick="modal('')">Cancel</button></div></div></div>`)}
+function saveWaterSettings(){st.waterGoal=Math.max(1,Math.round(+document.getElementById('waterGoalInput').value||2000));st.waterBtn1=Math.max(1,Math.round(+document.getElementById('waterBtn1Input').value||100));st.waterBtn2=Math.max(1,Math.round(+document.getElementById('waterBtn2Input').value||500));save();modal('');render()}
+function waterLog(){let keys=Object.keys(st.waterDaily||{}).sort().reverse();root(topHtml()+`<div class="content"><div class="title">Water log</div>${keys.length?keys.map(k=>{let d=new Date(k+'T00:00:00'),v=+st.waterDaily[k]||0,cls=waterClass(v),fill=waterFillClass(v),pct=Math.min(100,Math.round(v/waterGoal()*100));return `<div class="logDate">${longDate(d)}</div><div class="logEntry"><div class="name ${cls}">${v}ml</div><div class="meta">Goal: ${waterGoal()}ml</div><div class="progress"><div class="fill ${fill}" style="width:${pct}%"></div></div></div>`}).join(''):`<div class="card">No water logged yet.</div>`}</div><div class="bottom"><button class="btn dark" onclick="currentScreen='home';render()">Back</button></div>`)}
+
+function moodLog(){let groups={};st.moods.forEach(m=>{let d=new Date(m.date),k=longDate(d);groups[k]=groups[k]||[];groups[k].push(m)});root(topHtml()+`<div class="content"><div class="title">Mood log</div>${st.moods.length?Object.keys(groups).map(d=>`<div class="logDate">${d}</div>${groups[d].map(m=>`<div class="logEntry"><b>${timeOnly(new Date(m.date))}</b> <span style="font-size:24px">${m.emoji}</span><div class="notes">${esc(m.reason||'No reason added')}</div></div>`).join('')}`).join(''):`<div class="card">No mood logs yet.</div>`}</div><div class="bottom"><button class="btn dark" onclick="currentScreen='home';render()">Back</button></div>`)}
+
+function moodDayStats(key){let c={happy:0,neutral:0,sad:0,total:0};(st.moods||[]).forEach(m=>{if(dateKey(new Date(m.date))===key){c.total++;if(m.type==='happy')c.happy++;else if(m.type==='sad')c.sad++;else c.neutral++}});return c}
+function moodWinner(c){if(!c.total)return'';if(c.happy>c.sad&&c.happy>c.neutral)return'positive';if(c.sad>c.happy&&c.sad>c.neutral)return'negative';return'neutral'}
+function moodCalendar(){let y=calDate.getFullYear(),m=calDate.getMonth(),first=new Date(y,m,1),max=new Date(y,m+1,0).getDate(),start=first.getDay(),cells='';for(let i=0;i<start;i++)cells+='<div></div>';for(let d=1;d<=max;d++){let k=dateKey(new Date(y,m,d)),c=moodDayStats(k),w=moodWinner(c),cls=w==='positive'?'moodPos':w==='negative'?'moodNeg':w==='neutral'?'moodNeu':'';cells+=`<div class="moodCalCell">${w?`<div class="moodDot ${cls}" title="${c.total} mood entries">${d}</div>`:d}</div>`}root(topHtml()+`<div class="content"><div class="card"><div style="display:flex;align-items:center;gap:8px"><button class="mini" onclick="calDate=new Date(${y},${m-1},1);render()">‹</button><div class="name" style="flex:1;text-align:center">${calDate.toLocaleString('default',{month:'long',year:'numeric'})}</div><button class="mini" onclick="calDate=new Date(${y},${m+1},1);render()">›</button></div><div class="moodCalGrid">${['S','M','T','W','T','F','S'].map(d=>`<div class="small" style="text-align:center;font-weight:700">${d}</div>`).join('')}${cells}</div><div class="moodLegend"><div class="moodLegendItem"><span class="moodLegendDot moodPos"></span> More happy</div><div class="moodLegendItem"><span class="moodLegendDot moodNeg"></span> More sad</div><div class="moodLegendItem"><span class="moodLegendDot moodNeu"></span> Neutral / tied</div></div></div></div><div class="bottom"><button class="btn dark" onclick="currentScreen='home';render()">Back</button><button class="btn" onclick="currentScreen='moodlog';render()">Mood log</button></div>`)}
+
+function habitsByType(type){return (st.habits||[]).filter(h=>h.type===type)}
+function habitPeriodKey(type,d=new Date()){if(type==='daily')return 'D:'+dateKey(d);if(type==='weekly')return 'W:'+dateKey(weekStart(d));return 'M:'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function habitPeriodDate(key){let raw=key.slice(2);if(key[0]==='M')return new Date(raw+'-01T00:00:00');return new Date(raw+'T00:00:00')}
+function habitPeriodEndDate(key){let start=habitPeriodDate(key);if(key[0]==='D')return dayEnd(start);if(key[0]==='W')return dayEnd(addDays(start,6));return dayEnd(new Date(start.getFullYear(),start.getMonth()+1,0))}
+function habitPrefix(type){return type==='daily'?'D':type==='weekly'?'W':'M'}
+function habitCreatedDate(h){return new Date((h.createdAt||todayKey())+'T00:00:00')}
+function habitExistedInPeriod(h,key){return habitCreatedDate(h)<=habitPeriodEndDate(key)}
+function migrateHabitsCreatedAt(){let changed=false;(st.habits||[]).forEach(h=>{if(!h.createdAt){let prefix=habitPrefix(h.type),earliest=null;Object.keys(st.habitChecks||{}).forEach(k=>{if(k[0]===prefix&&((st.habitChecks||{})[k]||[]).includes(h.id)){let d=habitPeriodDate(k);if(!earliest||d<earliest)earliest=d}});h.createdAt=dateKey(earliest||new Date());changed=true}});if(changed)save()}
+function habitIsDone(h,key=habitPeriodKey(h.type)){return ((st.habitChecks||{})[key]||[]).includes(h.id)}
+function toggleHabit(id,type){let key=habitPeriodKey(type);st.habitChecks=st.habitChecks||{};let a=st.habitChecks[key]||[];if(a.includes(id))a=a.filter(x=>x!==id);else a.push(id);st.habitChecks[key]=a;save();render()}
+function habitSectionHtml(type,label){let hs=habitsByType(type);return `<div class="habitSection"><div class="habitSectionTitle">${label}</div>${hs.length?hs.map(h=>`<label class="habitItem ${habitIsDone(h)?'checked':''}"><input type="checkbox" ${habitIsDone(h)?'checked':''} onchange="toggleHabit('${h.id}','${h.type}')"><span>${esc(h.name)}</span></label>`).join(''):`<div class="small">No ${label.toLowerCase()} habits yet.</div>`}</div>`}
+function habitHomeHtml(){return `<div class="card"><div class="habitTop"><div class="name">My habits</div><button class="cog habitLogIcon" onclick="openHabitLog('daily')" aria-label="Habits log">📋</button></div>${habitSectionHtml('daily','Daily')}${habitSectionHtml('weekly','Weekly')}${habitSectionHtml('monthly','Monthly')}<div class="habitActions"><button class="btn dark" onclick="openHabitsSettings()">Manage habits</button></div></div>`}
+function openHabitsSettings(type){habitSettingsType=type||habitSettingsType||'daily';modal(`<div class="overlay"><div class="sheet"><div class="title">Habit settings</div><input id="habitName" placeholder="Habit name"><select id="habitType" onchange="habitSettingsType=this.value"><option value="daily" ${habitSettingsType==='daily'?'selected':''}>Daily habit</option><option value="weekly" ${habitSettingsType==='weekly'?'selected':''}>Weekly habit</option><option value="monthly" ${habitSettingsType==='monthly'?'selected':''}>Monthly habit</option></select><button class="btn green" onclick="addHabit()">Add habit</button><div class="logDate">Current habits</div>${st.habits.length?st.habits.map(h=>`<div class="habitManage"><span>${esc(h.name)} <span class="small">(${h.type})</span></span><button class="mini red" onclick="deleteHabit('${h.id}')">Delete</button></div>`).join(''):`<div class="card">No habits yet.</div>`}<button class="btn" style="margin-top:10px" onclick="modal('')">Close</button></div></div>`);setTimeout(()=>document.getElementById('habitName')?.focus(),100)}
+function addHabit(){let name=document.getElementById('habitName').value.trim(),type=document.getElementById('habitType').value;habitSettingsType=type;if(!name){alert('Enter a habit name');return}st.habits.push({id:uid(),name,type,createdAt:todayKey()});save();render();openHabitsSettings(type)}
+function deleteHabit(id){if(!confirm('Delete this habit?'))return;let type=document.getElementById('habitType')?.value||habitSettingsType||'daily';habitSettingsType=type;st.habits=(st.habits||[]).filter(h=>h.id!==id);Object.keys(st.habitChecks||{}).forEach(k=>st.habitChecks[k]=(st.habitChecks[k]||[]).filter(x=>x!==id));save();render();openHabitsSettings(type)}
+function habitRecentKeys(type){let set=new Set(),now=new Date(),hs=habitsByType(type);if(!hs.length)return [];function maybeAdd(k){if(hs.some(h=>habitExistedInPeriod(h,k)))set.add(k)}if(type==='daily'){for(let i=0;i<14;i++)maybeAdd(habitPeriodKey(type,addDays(now,-i)))}else if(type==='weekly'){let s=weekStart(now);for(let i=0;i<10;i++)maybeAdd(habitPeriodKey(type,addDays(s,-7*i)))}else{let y=now.getFullYear(),m=now.getMonth();for(let i=0;i<12;i++)maybeAdd(habitPeriodKey(type,new Date(y,m-i,1)))}Object.keys(st.habitChecks||{}).forEach(k=>{if((type==='daily'&&k[0]==='D')||(type==='weekly'&&k[0]==='W')||(type==='monthly'&&k[0]==='M'))maybeAdd(k)});return [...set].sort((a,b)=>habitPeriodDate(b)-habitPeriodDate(a))}
+function habitPeriodTitle(type,key){let d=habitPeriodDate(key);if(type==='daily')return longDate(d);if(type==='weekly')return 'Week '+shortDate(d)+' - '+shortDate(addDays(d,6));return d.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}
+
+function migrateJournalItems(){let changed=false;(st.journalItems||[]).forEach(j=>{if(!j.id){j.id=uid();changed=true}if(!j.createdAt){j.createdAt=todayKey();changed=true}});if(changed)save()}
+function journalTodayKey(){return dateKey(new Date())}
+function journalItemsForDate(d){let end=dayEnd(d);return (st.journalItems||[]).filter(j=>!j.deletedAt&&new Date((j.createdAt||todayKey())+'T00:00:00')<=end)}
+function journalDoneIds(k=journalTodayKey()){st.journalChecks=st.journalChecks||{};return st.journalChecks[k]||[]}
+function journalItemDoneOn(id,d){return journalDoneIds(dateKey(d)).includes(id)}
+function toggleJournalItem(id){let k=journalTodayKey(),a=journalDoneIds(k);if(a.includes(id))a=a.filter(x=>x!==id);else a.push(id);st.journalChecks[k]=a;save();render()}
+function openAddJournalItem(){modal(`<div class="overlay"><div class="sheet"><div class="title">Add journal item</div><input id="journalItemName" placeholder="Vitamin D"><div style="display:flex;gap:8px;margin-top:8px"><button class="btn green" onclick="saveJournalItem()">Save</button><button class="btn" onclick="modal('')">Cancel</button></div></div></div>`);setTimeout(()=>document.getElementById('journalItemName')?.focus(),100)}
+function saveJournalItem(){let name=document.getElementById('journalItemName').value.trim();if(!name)return;st.journalItems=st.journalItems||[];st.journalItems.push({id:uid(),name,createdAt:todayKey()});save();modal('');render()}
+function removeJournalItem(id){let j=(st.journalItems||[]).find(x=>x.id===id);if(!j)return;if(!confirm('Remove this journal item?'))return;j.deletedAt=todayKey();save();render()}
+function journalPage(){let items=journalItemsForDate(new Date()),done=journalDoneIds();root(topHtml()+`<div class="content"><div class="card"><div class="journalTop"><div><div class="title">Journal</div><div class="meta">Daily checklist</div></div></div>${items.length?items.map(j=>`<label class="journalItem ${done.includes(j.id)?'checked':''}"><input type="checkbox" ${done.includes(j.id)?'checked':''} onchange="toggleJournalItem('${j.id}')"><span>${esc(j.name)}</span><button type="button" class="journalRemove" onclick="event.preventDefault();event.stopPropagation();removeJournalItem('${j.id}')">Remove</button></label>`).join(''):`<div class="small">No journal items yet.</div>`}<div class="journalActions"><button class="btn green" onclick="openAddJournalItem()">Add item</button><button class="btn dark" onclick="currentScreen='journallog';render()">Journal log</button></div></div></div>`)}
+function journalLogKeys(){let set=new Set(),now=new Date();for(let i=0;i<30;i++)set.add(dateKey(addDays(now,-i)));Object.keys(st.journalChecks||{}).forEach(k=>set.add(k));return [...set].sort((a,b)=>new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))}
+function journalLog(){let keys=journalLogKeys();root(topHtml()+`<div class="content"><div class="title">Journal log</div>${keys.map(k=>{let d=new Date(k+'T00:00:00'),items=journalItemsForDate(d),done=journalDoneIds(k);return `<div class="logDate">${longDate(d)}</div><div class="logEntry">${items.length?items.map(j=>`<div class="journalLogLine ${done.includes(j.id)?'journalLogDone':'journalLogMiss'}" onclick="openJournalCalendar('${j.id}')"><span>${done.includes(j.id)?'✓':'✕'} ${esc(j.name)}</span><span>▦</span></div>`).join(''):`<div class="small">No journal items existed this day.</div>`}</div>`}).join('')}</div><div class="bottom"><button class="btn dark" onclick="currentScreen='journal';render()">Back</button></div>`)}
+function openJournalCalendar(id){journalCalItemId=id;journalCalDate=new Date();currentScreen='journalcalendar';render()}
+function journalCalendar(){let item=(st.journalItems||[]).find(j=>j.id===journalCalItemId);if(!item){currentScreen='journallog';return render()}let y=journalCalDate.getFullYear(),m=journalCalDate.getMonth(),first=new Date(y,m,1),start=first.getDay(),daysIn=new Date(y,m+1,0).getDate(),today=dayStart(new Date()),created=dayStart(new Date((item.createdAt||todayKey())+'T00:00:00')),monthTitle=journalCalDate.toLocaleDateString('en-GB',{month:'long',year:'numeric'});let cells='';for(let i=0;i<start;i++)cells+=`<div></div>`;for(let day=1;day<=daysIn;day++){let d=new Date(y,m,day),future=d>today,before=d<created,cls=future||before?'journalCalFuture':journalItemDoneOn(item.id,d)?'journalCalDone':'journalCalMiss';cells+=`<div class="journalCalCell ${cls}">${day}</div>`}root(topHtml()+`<div class="content"><div class="title">${esc(item.name)}</div><div class="meta">Green = checked · Red = not checked</div><div class="card"><div class="journalCalHead"><button class="arrow" onclick="journalCalDate=new Date(${y},${m-1},1);render()">‹</button><div class="name">${monthTitle}</div><button class="arrow" onclick="journalCalDate=new Date(${y},${m+1},1);render()">›</button></div><div class="journalWeekdays">${days.map(d=>`<div>${d.slice(0,3)}</div>`).join('')}</div><div class="journalCalGrid">${cells}</div></div></div><div class="bottom"><button class="btn dark" onclick="currentScreen='journallog';render()">Back</button></div>`)}
+
+function habitsPage(){root(topHtml()+`<div class="content">${habitHomeHtml()}</div>`)}
+function openHabitLog(type){if(currentScreen!=='habitlog')habitLogBack=currentScreen||'habits';habitLogType=type;currentScreen='habitlog';render()}
+function habitLog(){let type=habitLogType||'daily',hs=habitsByType(type),keys=habitRecentKeys(type);root(topHtml()+`<div class="content"><div class="title">Habits log</div><div class="habitTabs"><button class="habitTab ${type==='daily'?'active':''}" onclick="openHabitLog('daily')">Daily</button><button class="habitTab ${type==='weekly'?'active':''}" onclick="openHabitLog('weekly')">Weekly</button><button class="habitTab ${type==='monthly'?'active':''}" onclick="openHabitLog('monthly')">Monthly</button></div>${hs.length&&keys.length?keys.map(k=>{let periodHabits=hs.filter(h=>habitExistedInPeriod(h,k));return `<div class="logDate">${habitPeriodTitle(type,k)}</div><div class="logEntry">${periodHabits.map(h=>habitIsDone(h,k)?`<div class="habitLogLine habitLogDone">✓ ${esc(h.name)}</div>`:`<div class="habitLogLine habitLogMiss">✕ ${esc(h.name)}</div>`).join('')}</div>`}).join(''):`<div class="card">No ${type} habits logged yet. Tap the cog on My habits to add some.</div>`}</div><div class="bottom"><button class="btn dark" onclick="currentScreen=habitLogBack||'habits';render()">Back</button></div>`)}
+
+function trendDates(n=14){let a=[];let today=dayStart(new Date());for(let i=n-1;i>=0;i--)a.push(addDays(today,-i));return a}
+function trendLabel(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
+function clampPercent(v){if(v===null||v===undefined||isNaN(v))return null;return Math.max(0,Math.min(100,Math.round(v)))}
+function moodPositivityOn(d){let c=moodCounts(dayStart(d),dayEnd(d)),den=c.happy+c.sad;if(!den)return null;return c.happy/den*100}
+function exerciseCompletionOn(d){let tabs=plannedExerciseTabsOnDate(d);if(!tabs.length)return null;let done=tabs.filter(t=>exerciseTabDoneOn(t,d)).length;return done/tabs.length*100}
+function habitCompletionOn(d){let key=habitPeriodKey('daily',d),total=habitsByType('daily').filter(h=>habitExistedInPeriod(h,key)).length;if(!total)return null;return habitDoneTotal('daily',key)/total*100}
+function waterCompletionOn(d){let goal=waterGoal();return Math.min(100,((st.waterDaily||{})[dateKey(d)]||0)/goal*100)}
+function dailyScoreOn(d){let vals=[waterCompletionOn(d),habitCompletionOn(d),exerciseCompletionOn(d)].filter(v=>v!==null);if(!vals.length)return null;return vals.reduce((a,b)=>a+b,0)/vals.length}
+function trendChange(values){let clean=values.filter(v=>v!==null);if(clean.length<2)return '—';let diff=Math.round(clean[clean.length-1]-clean[0]);if(diff>0)return `↗ +${diff}%`;if(diff<0)return `↘ ${diff}%`;return '→ same'}
+function trendSvg(title,values,sub){let labels=trendDates(values.length).map(trendLabel),w=320,h=118,pad=14,plotW=w-pad*2,plotH=82,top=12;let pts=values.map((v,i)=>v===null?null:{x:pad+(plotW*(i/(values.length-1))),y:top+plotH-(clampPercent(v)/100*plotH),v:clampPercent(v)});let d='',started=false;pts.forEach(p=>{if(!p){started=false;return}d+=(started?' L ':'M ')+p.x.toFixed(1)+' '+p.y.toFixed(1);started=true});let area='';let first=pts.find(p=>p),last=[...pts].reverse().find(p=>p);if(first&&last)area=`${d} L ${last.x.toFixed(1)} ${top+plotH} L ${first.x.toFixed(1)} ${top+plotH} Z`;let dots=pts.filter(p=>p).map(p=>`<circle class="trendDot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3"></circle>`).join('');let clean=values.filter(v=>v!==null),latest=clean.length?Math.round(clean[clean.length-1])+'%':'—';return `<div class="card trendCard"><div class="trendTop"><div><div class="trendTitle">${title}</div><div class="small">${sub}</div></div><div class="trendValue">${latest} ${trendChange(values)}</div></div>${clean.length?`<svg class="trendSvg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line class="trendGridLine" x1="${pad}" y1="${top}" x2="${w-pad}" y2="${top}"></line><line class="trendGridLine" x1="${pad}" y1="${top+plotH/2}" x2="${w-pad}" y2="${top+plotH/2}"></line><line class="trendAxis" x1="${pad}" y1="${top+plotH}" x2="${w-pad}" y2="${top+plotH}"></line><path class="trendArea" d="${area}"></path><path class="trendLine" d="${d}"></path>${dots}</svg><div class="trendFooter"><span>${labels[0]}</span><span>${labels[labels.length-1]}</span></div>`:`<div class="noTrendData">Not enough data yet.</div>`}</div>`}
+function trendsPage(){let dates=trendDates(14),mood=dates.map(moodPositivityOn),exercise=dates.map(exerciseCompletionOn),habits=dates.map(habitCompletionOn),water=dates.map(waterCompletionOn),score=dates.map(dailyScoreOn);root(topHtml()+`<div class="content"><div class="title">Trends</div><div class="trendsIntro">Last 14 days. Higher is better.</div>${trendSvg('Positive mood ratio',mood,'Happy vs sad smileys per day')}${trendSvg('Exercise completion',exercise,'Exercise tabs completed vs planned')}${trendSvg('Habits completion',habits,'Daily habits completed')}${trendSvg('Water completion',water,'Water goal reached')}${trendSvg('Daily score',score,'Average of water, habits and exercise')}</div>`)}
+function routine(){let a=list(),wd=weekDone(),sk=streak();root(topHtml()+`<div class="daybar"><button class="arrow" onclick="moveDay(-1)">‹</button><div class="day">${days[dayIndex]}</div><button class="arrow" onclick="moveDay(1)">›</button></div><div class="content"><div class="card"><div class="name">${esc(tab().name)}</div><div class="meta">Streak: ${sk} | This week: ${wd}/7</div></div>${a.length?a.map(card).join(''):`<div class="card">No exercises for ${days[dayIndex]}. Tap Edit to add some.</div>`}</div><div class="bottom"><button class="btn dark" onclick="currentScreen='edit';editingUid=null;render()">Edit</button><button class="btn" onclick="currentScreen='calendar';render()">Calendar</button><button class="btn green" onclick="startRoutine()">Start</button></div>`)}
+function card(e,i){return`<div class="card"><div class="name">${esc(e.name)}</div><div class="meta">${esc(meta(e))}</div>${e.notes?`<div class="notes">${esc(e.notes)}</div>`:''}${imgs(e.images)}<div class="actions"><button class="mini dark" onclick="editExercise('${e.uid}')">Edit</button><button class="mini" onclick="moveEx(${i},-1)">↑</button><button class="mini" onclick="moveEx(${i},1)">↓</button><button class="mini red" onclick="delEx(${i})">Del</button></div></div>`}
+function imgs(a=[]){return a.length?`<div class="imgs">${a.map(src=>`<img src="${esc(src)}">`).join('')}</div>`:''}
+function moveDay(n){dayIndex=(dayIndex+n+7)%7;render()}function addTab(){st.tabs.push({id:uid(),name:'New tab',days:{}});active=st.tabs.length-1;currentScreen='edit';save();render()}
+function moveEx(i,n){let a=list(),j=i+n;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];save();render()}function delEx(i){if(confirm('Delete exercise?')){list().splice(i,1);save();render()}}function editExercise(id){editingUid=id;currentScreen='edit';render()}
+function findEx(id){for(const d of days){let e=(tab().days[d]||[]).find(x=>x.uid===id);if(e)return e}return null}function daysFor(id){return days.filter(d=>(tab().days[d]||[]).some(x=>x.uid===id))}
+function edit(){let e=editingUid?findEx(editingUid):null;if(e&&!tempImages.length)tempImages=[...(e.images||[])];let sel=e?daysFor(editingUid):[days[dayIndex]],a=list();root(topHtml()+`<div class="content"><div class="card"><div class="name">Edit routine</div><input id="tabName" placeholder="Tab name" value="${esc(tab().name)}"><div class="tabManageBtns"><button class="tabActionBtn rename" onclick="renameTab()">Rename</button><button class="tabActionBtn delete" onclick="deleteTab()">Delete tab</button></div></div><div class="card"><div class="name">${e?'Edit exercise':'Add exercise'}</div><input id="exName" placeholder="Exercise name" value="${esc(e?.name||'')}"><input id="exSecs" type="number" placeholder="Duration seconds, optional" value="${e?.secs||''}"><input id="exReps" type="number" placeholder="Reps / rounds, optional" value="${e?.reps||''}"><textarea id="exNotes" placeholder="Notes, optional">${esc(e?.notes||'')}</textarea><input id="exLink" placeholder="Image link, optional"><input type="file" accept="image/*" multiple onchange="loadFiles(this)"><div id="imageStatus" class="small">${tempImages.length?tempImages.length+' image(s) selected':'No images selected'}</div><div class="daychecks">${days.map(d=>`<label><input type="checkbox" class="dayCheck" value="${d}" ${sel.includes(d)?'checked':''}><span class="dayTick">✓</span><span class="dayText">${d}</span></label>`).join('')}</div><button class="btn green" onclick="saveExercise()">${e?'Save changes':'Add exercise'}</button>${e?`<button class="btn" style="margin-top:8px" onclick="editingUid=null;tempImages=[];render()">Cancel edit</button>`:''}</div><div class="name" style="padding:6px 2px">This day</div>${a.length?a.map(card).join(''):`<div class="card">No exercises for this day yet.</div>`}</div><div class="bottom"><button class="btn dark" onclick="currentScreen='routine';editingUid=null;tempImages=[];render()">Close</button></div>`)}
+function updateImageStatus(){let el=document.getElementById('imageStatus');if(el)el.textContent=tempImages.length?tempImages.length+' image(s) selected':'No images selected'}
+function loadFiles(input){[...input.files].forEach(f=>{let r=new FileReader();r.onload=()=>{tempImages.push(r.result);updateImageStatus()};r.readAsDataURL(f)});input.value=''}
+function renameTab(){let v=document.getElementById('tabName').value.trim();if(v)tab().name=v;save();render()}function deleteTab(){if(st.tabs.length<=1){alert('You need at least one tab');return}if(confirm('Delete this tab and all exercises?')){st.tabs.splice(active,1);active=Math.max(0,active-1);currentScreen='home';save();render()}}
+function saveExercise(){let selected=[...document.querySelectorAll('.dayCheck:checked')].map(x=>x.value);if(!selected.length){alert('Choose at least one day');return}let link=document.getElementById('exLink').value.trim(),images=[...tempImages];if(link)images.push(link);let id=editingUid||uid(),ex={uid:id,name:document.getElementById('exName').value.trim()||'Exercise',secs:+document.getElementById('exSecs').value||0,reps:+document.getElementById('exReps').value||0,notes:document.getElementById('exNotes').value||'',images};if(editingUid)days.forEach(d=>tab().days[d]=(tab().days[d]||[]).filter(x=>x.uid!==editingUid));selected.forEach(d=>{tab().days[d]=tab().days[d]||[];tab().days[d].push({...ex,images:[...images]})});editingUid=null;tempImages=[];save();render();setTimeout(()=>scrollTo(0,document.body.scrollHeight),20)}
+function calendar(){let y=calDate.getFullYear(),m=calDate.getMonth(),first=new Date(y,m,1),max=new Date(y,m+1,0).getDate(),start=first.getDay(),cells='';for(let i=0;i<start;i++)cells+='<div></div>';for(let d=1;d<=max;d++){let k=dateKey(new Date(y,m,d));cells+=`<div class="calcell ${isDone(k)?'done':isHoliday(k)?'holiday':''}">${isHoliday(k)&&!isDone(k)?d+' H':d}</div>`}root(topHtml()+`<div class="content"><div class="card"><div style="display:flex;align-items:center;gap:8px"><button class="mini" onclick="calDate=new Date(${y},${m-1},1);render()">‹</button><div class="name" style="flex:1;text-align:center">${calDate.toLocaleString('default',{month:'long',year:'numeric'})}</div><button class="mini" onclick="calDate=new Date(${y},${m+1},1);render()">›</button></div><div class="calgrid">${['S','M','T','W','T','F','S'].map(d=>`<div class="small" style="text-align:center;font-weight:700">${d}</div>`).join('')}${cells}</div></div><div class="card"><div class="name">Current streak: ${streak()} day${streak()===1?'':'s'}</div><div class="meta">Green = complete. Blue H = holiday/pause day.</div><div class="meta">${st.holidayMode?'Holiday mode is ON':'Holiday mode is OFF'}</div></div></div><div class="bottom"><button class="btn dark" onclick="currentScreen='routine';render()">Back</button><button class="btn ${st.holidayMode?'blue':''}" onclick="toggleHoliday()">${st.holidayMode?'End holiday':'Holiday mode'}</button></div>`)}
+function startRoutine(){if(!list().length)return;markExerciseTabToday();run=list().map(e=>({...e,images:[...(e.images||[])]}));runIndex=0;elapsed=0;currentRound=1;currentRep=1;currentScreen='timer';timerStarted=false;paused=false;render()}
+function timerScreen(){let e=run[runIndex];root(`<div class="timer"><h1>${esc(e.name)}</h1>${e.images?.length?`<div class="timerImg">${e.images.map(src=>`<img src="${esc(src)}">`).join('')}</div>`:''}<div class="round">${timerRound(e)}</div><div class="count">${timerCount(e)}</div>${e.notes?`<div class="timerNote">${esc(e.notes)}</div>`:''}<div class="progress"><div class="fill" style="width:${timerProgress(e)}%"></div></div><div class="small" style="text-align:center;color:#d1d5db;margin:8px">${e.secs?'Timer waits until you press Start timer.':e.reps?'Press Next rep each time.':'Press Next exercise when done.'}</div><div class="timerBtns">${e.secs?`<button class="btn green" onclick="startPause()">${!timerStarted?'Start timer':paused?'Resume timer':'Pause timer'}</button><button class="btn" onclick="resetTimer()">Reset timer</button>`:''}<div style="display:flex;gap:8px"><button class="btn green" onclick="nextStep()">${nextText(e)}</button><button class="btn" onclick="skipEx()">Skip exercise</button></div><button class="btn red" onclick="clearInterval(timer);currentScreen='routine';render()">Stop</button></div></div>`)}
+function timerRound(e){if(e.secs&&e.reps>1)return`Round ${currentRound} / ${e.reps}`;if(!e.secs&&e.reps)return'Reps';return''}function timerCount(e){if(e.secs)return`${elapsed} sec / ${e.secs} secs`;if(e.reps)return`${currentRep} / ${e.reps}`;return'No timer'}function timerProgress(e){if(e.secs)return Math.min(100,elapsed/e.secs*100);if(e.reps)return Math.min(100,currentRep/e.reps*100);return 0}function nextText(e){if(e.secs&&currentRound<(e.reps||1))return'Next round';if(!e.secs&&e.reps&&currentRep<e.reps)return'Next rep';return'Next exercise'}
+function startPause(){let e=run[runIndex];if(!e.secs)return;if(!timerStarted){timerStarted=true;paused=false;timer=setInterval(()=>{if(!paused){elapsed++;if(elapsed>=e.secs){clearInterval(timer);timerStarted=false;paused=false}timerScreen()}},1000)}else paused=!paused;timerScreen()}function resetTimer(){clearInterval(timer);elapsed=0;timerStarted=false;paused=false;timerScreen()}
+function nextStep(){clearInterval(timer);timerStarted=false;paused=false;let e=run[runIndex];if(e.secs&&currentRound<(e.reps||1)){currentRound++;elapsed=0;timerScreen();return}if(!e.secs&&e.reps&&currentRep<e.reps){currentRep++;timerScreen();return}if(runIndex<run.length-1){runIndex++;elapsed=0;currentRound=1;currentRep=1;timerScreen()}else{currentScreen='complete';render()}}function skipEx(){clearInterval(timer);timerStarted=false;if(runIndex<run.length-1){runIndex++;elapsed=0;currentRound=1;currentRep=1;timerScreen()}else{currentScreen='complete';render()}}
+function completeScreen(){let wd=weekDone(),sk=streak();root(`<div class="complete"><h1>✅ Routine complete</h1><div class="card" style="color:#111"><div class="name">Exercises: ${run.length}</div><div class="name" style="color:#16a34a;margin-top:8px">Streak: ${sk} day${sk===1?'':'s'}</div><div class="meta" style="margin-top:10px;font-weight:700;color:#111">This week: ${wd} / 7 days</div><div class="progress"><div class="fill" style="width:${wd/7*100}%"></div></div><div class="meta" style="margin-top:10px">Today is logged complete.</div></div><div style="margin-top:auto;display:grid;gap:8px"><button class="btn green" onclick="currentScreen='routine';render()">Done</button><button class="btn" onclick="currentScreen='calendar';render()">View calendar</button></div></div>`)}
+function dateKey(d){let x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}function todayKey(){return dateKey(new Date())}function addDays(d,n){let x=new Date(d);x.setDate(x.getDate()+n);return x}function isDone(k){return st.completedDates.includes(k)}function isHoliday(k){return st.holidayDates.includes(k)}
+function addHolidayRange(start,end){let d=new Date(start+'T00:00:00'),e=new Date(end+'T00:00:00');while(d<=e){let k=dateKey(d);if(!st.holidayDates.includes(k))st.holidayDates.push(k);d=addDays(d,1)}}function syncHoliday(){if(st.holidayMode){st.holidayStart=st.holidayStart||todayKey();addHolidayRange(st.holidayStart,todayKey());save()}}function endHoliday(){if(st.holidayMode){addHolidayRange(st.holidayStart||todayKey(),todayKey());st.holidayMode=false;st.holidayStart='';save()}}function markToday(){endHoliday();let k=todayKey();if(!st.completedDates.includes(k))st.completedDates.push(k);save()}function toggleHoliday(){if(st.holidayMode)endHoliday();else{st.holidayMode=true;st.holidayStart=todayKey();addHolidayRange(todayKey(),todayKey());save()}render()}
+function streak(){let d=new Date();if(!isDone(dateKey(d))&&!isHoliday(dateKey(d)))d=addDays(d,-1);let n=0;while(true){let k=dateKey(d);if(isDone(k)){n++;d=addDays(d,-1);continue}if(isHoliday(k)){d=addDays(d,-1);continue}break}return n}function weekStart(d=new Date()){let x=new Date(d),off=(x.getDay()+6)%7;x.setDate(x.getDate()-off);x.setHours(0,0,0,0);return x}function weekDone(){let s=weekStart(),n=0;for(let i=0;i<7;i++)if(isDone(dateKey(addDays(s,i))))n++;return n}
+function completedCount(start,end){let n=0,d=new Date(start);while(d<=end){if(isDone(dateKey(d)))n++;d=addDays(d,1)}return n}function holidayCount(start,end){let n=0,d=new Date(start);while(d<=end){if(isHoliday(dateKey(d)))n++;d=addDays(d,1)}return n}
+function ordinal(n){let s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}function longDate(d){return d.toLocaleDateString('en-GB',{weekday:'long'})+' '+ordinal(d.getDate())+' of '+d.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}function timeOnly(d){return d.toLocaleTimeString('en-GB',{hour:'numeric',minute:'2-digit'}).toLowerCase()}
+function maybeMonday(){let today=new Date();if(today.getDay()!==1)return;let k=todayKey();if(localStorage.getItem('stretchfit_last_monday')===k)return;let ws=weekStart(today),ls=addDays(ws,-7),le=addDays(ws,-1),comp=completedCount(ls,le),hol=holidayCount(ls,le),miss=Math.max(0,7-comp-hol);setTimeout(()=>alert(`Weekly summary\n\nLast week:\nCompleted: ${comp} / 7 days\nHoliday/pause days: ${hol}\nMissed days: ${miss}\n\nCurrent streak: ${streak()} day${streak()===1?'':'s'}`),400);localStorage.setItem('stretchfit_last_monday',k)}
+load();applyTheme();render();maybeAskName();maybeMonday();
+
+/* v-journal-restored-photo-safe: Journal kept + no stuck photo state */
+var EX_SAFE2_MAX_IMAGES=3,EX_SAFE2_MAX_EDGE=520,EX_SAFE2_QUALITY=.50,EX_SAFE2_MAX_DATA_CHARS=420000,exPhotoJobIdSafe2=0;
+function resetExercisePhotoState(){tempImages=[];if(typeof exImageBusy!=='undefined')exImageBusy=0;exPhotoJobIdSafe2++;updateImageStatus()}
+function openAddExercise(){editingUid=null;resetExercisePhotoState();currentScreen='edit';render();setTimeout(()=>{try{scrollTo(0,0);document.getElementById('exName')?.focus()}catch(e){}},60)}
+function editExercise(id){editingUid=id;let e=findEx(id);tempImages=e?[...(e.images||[])].filter(Boolean).slice(0,EX_SAFE2_MAX_IMAGES):[];if(typeof exImageBusy!=='undefined')exImageBusy=0;exPhotoJobIdSafe2++;currentScreen='edit';render();setTimeout(()=>{try{scrollTo(0,0);document.getElementById('exName')?.focus()}catch(e){}},60)}
+function clearExercisePhotos(){tempImages=[];if(typeof exImageBusy!=='undefined')exImageBusy=0;exPhotoJobIdSafe2++;let input=document.getElementById('exercisePhotoInput');if(input)input.value='';updateImageStatus()}
+function removeTempImage(i){tempImages.splice(i,1);if(typeof exImageBusy!=='undefined')exImageBusy=0;exPhotoJobIdSafe2++;let input=document.getElementById('exercisePhotoInput');if(input)input.value='';updateImageStatus()}
+function imagePreviewHtml(){return tempImages.length?`<div class="imagePreviewGrid">${tempImages.map((src,i)=>`<div class="imagePreviewItem"><img src="${esc(src)}"><button class="imageRemoveBtn" type="button" onclick="removeTempImage(${i})">×</button></div>`).join('')}</div>`:''}
+function updateImageStatus(){let el=document.getElementById('imageStatus'),pv=document.getElementById('imagePreview'),busy=(typeof exImageBusy!=='undefined'?exImageBusy:0);let msg=tempImages.length?`${tempImages.length} attached photo${tempImages.length===1?'':'s'}`:'No photos attached';if(busy>0)msg+=' · processing';if(el)el.textContent=msg;if(pv)pv.innerHTML=imagePreviewHtml()}
+function fileToCompressedDataUrl(file){return new Promise((resolve,reject)=>{if(!file||!file.type||!file.type.startsWith('image/'))return reject(new Error('Choose an image file.'));let reader=new FileReader();reader.onerror=()=>reject(new Error('Could not read photo.'));reader.onload=()=>{let img=new Image();img.onerror=()=>reject(new Error('Could not process photo. Try a screenshot or smaller image.'));img.onload=()=>{try{let w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;if(!w||!h)return reject(new Error('Could not process photo.'));let scale=Math.min(1,EX_SAFE2_MAX_EDGE/Math.max(w,h));let nw=Math.max(1,Math.round(w*scale)),nh=Math.max(1,Math.round(h*scale));let canvas=document.createElement('canvas');canvas.width=nw;canvas.height=nh;let ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,nw,nh);ctx.drawImage(img,0,0,nw,nh);let out=canvas.toDataURL('image/jpeg',EX_SAFE2_QUALITY);if(out.length>EX_SAFE2_MAX_DATA_CHARS){canvas.width=Math.max(1,Math.round(nw*.7));canvas.height=Math.max(1,Math.round(nh*.7));let ctx2=canvas.getContext('2d',{alpha:false});ctx2.fillStyle='#fff';ctx2.fillRect(0,0,canvas.width,canvas.height);ctx2.drawImage(img,0,0,canvas.width,canvas.height);out=canvas.toDataURL('image/jpeg',.38)}if(out.length>EX_SAFE2_MAX_DATA_CHARS)return reject(new Error('Photo is still too large after compression. Save without it, or use an image link.'));resolve(out)}catch(e){reject(new Error('Could not compress photo. Save without it, or use an image link.'))}};img.src=reader.result};reader.readAsDataURL(file)})}
+async function loadFiles(input){let job=++exPhotoJobIdSafe2;let files=[...(input.files||[])].filter(f=>f.type&&f.type.startsWith('image/'));input.value='';if(!files.length)return;let room=EX_SAFE2_MAX_IMAGES-tempImages.length;if(room<=0){alert(`Maximum ${EX_SAFE2_MAX_IMAGES} photos per exercise. Remove one first.`);return}if(files.length>room){alert(`Only ${room} more photo${room===1?'':'s'} can be added.`);files=files.slice(0,room)}if(typeof exImageBusy!=='undefined')exImageBusy=files.length;updateImageStatus();for(const f of files){try{let data=await fileToCompressedDataUrl(f);if(job!==exPhotoJobIdSafe2)break;tempImages.push(data)}catch(e){if(job===exPhotoJobIdSafe2)alert(e&&e.message?e.message:'Could not add photo.')}finally{if(job===exPhotoJobIdSafe2){if(typeof exImageBusy!=='undefined')exImageBusy=Math.max(0,exImageBusy-1);updateImageStatus()}}}if(job===exPhotoJobIdSafe2){if(typeof exImageBusy!=='undefined')exImageBusy=0;updateImageStatus()}}
+function saveStretchFitStateOrThrow(){localStorage.setItem('stretchfit_web_mood_v2',JSON.stringify(st))}
+function safeSaveExerciseState(exerciseId){try{saveStretchFitStateOrThrow();return {ok:true,photosKept:true}}catch(err){days.forEach(d=>{((tab().days||{})[d]||[]).forEach(x=>{if(x.uid===exerciseId)x.images=[]})});try{saveStretchFitStateOrThrow();return {ok:true,photosKept:false}}catch(err2){return {ok:false,error:err2}}}}
+function saveExercise(){let busy=(typeof exImageBusy!=='undefined'?exImageBusy:0);if(busy>0){alert('Photo is still processing. Wait a moment or tap Clear photos.');return}let selected=[...document.querySelectorAll('.dayCheck:checked')].map(x=>x.value);if(!selected.length){alert('Choose at least one day');return}let link=(document.getElementById('exLink')?.value||'').trim();let images=[...tempImages].filter(Boolean);if(link)images.push(link);let id=editingUid||uid();let ex={uid:id,name:(document.getElementById('exName')?.value||'').trim()||'Exercise',secs:+document.getElementById('exSecs')?.value||0,reps:+document.getElementById('exReps')?.value||0,notes:document.getElementById('exNotes')?.value||'',images};if(editingUid)days.forEach(d=>tab().days[d]=(tab().days[d]||[]).filter(x=>x.uid!==editingUid));selected.forEach(d=>{tab().days[d]=tab().days[d]||[];tab().days[d].push({...ex,images:[...images]})});let result=safeSaveExerciseState(id);if(!result.ok){alert('Could not save exercise because browser storage is full. Try deleting old exercise photos first.');return}editingUid=null;tempImages=[];if(typeof exImageBusy!=='undefined')exImageBusy=0;exPhotoJobIdSafe2++;if(!result.photosKept)alert('Exercise saved, but the photo was removed because browser storage was full.');render();setTimeout(()=>{try{scrollTo(0,document.body.scrollHeight)}catch(e){}},20)}
+function edit(){let e=editingUid?findEx(editingUid):null;if(editingUid&&!e){editingUid=null;resetExercisePhotoState()}let sel=e?daysFor(editingUid):[days[dayIndex]],a=list();root(topHtml()+`<div class="content"><div class="card"><div class="name">Edit routine</div><input id="tabName" placeholder="Tab name" value="${esc(tab().name)}"><div class="tabManageBtns"><button class="tabActionBtn rename" onclick="renameTab()">Rename</button><button class="tabActionBtn delete" onclick="deleteTab()">Delete tab</button></div></div><div class="card" id="exerciseEditForm"><div class="name">${e?'Edit exercise':'Add exercise'}</div><input id="exName" placeholder="Exercise name" value="${esc(e?.name||'')}"><input id="exSecs" type="number" placeholder="Duration seconds, optional" value="${e?.secs||''}"><input id="exReps" type="number" placeholder="Reps / rounds, optional" value="${e?.reps||''}"><textarea id="exNotes" placeholder="Notes, optional">${esc(e?.notes||'')}</textarea><input id="exLink" placeholder="Image link, optional"><input id="exercisePhotoInput" type="file" accept="image/*" multiple onchange="loadFiles(this)"><div class="exercisePhotoTools"><button class="mini" type="button" onclick="clearExercisePhotos()">Clear photos</button></div><div id="imageStatus" class="small">${tempImages.length?tempImages.length+' attached photo'+(tempImages.length===1?'':'s'):'No photos attached'}</div><div id="imagePreview">${imagePreviewHtml()}</div><div class="exercisePhotoNote">Photos are optional. If your phone says a photo is too large, the exercise can still be saved without it.</div><div class="daychecks">${days.map(d=>`<label><input type="checkbox" class="dayCheck" value="${d}" ${sel.includes(d)?'checked':''}><span class="dayTick">✓</span><span class="dayText">${d}</span></label>`).join('')}</div><button class="btn green" onclick="saveExercise()">${e?'Save changes':'Add exercise'}</button>${e?`<button class="btn" style="margin-top:8px" onclick="openAddExercise()">Cancel edit</button>`:''}</div><div class="name" style="padding:6px 2px">This day</div>${a.length?a.map(card).join(''):`<div class="card">No exercises for this day yet.</div>`}</div><div class="bottom"><button class="btn dark" onclick="currentScreen='routine';editingUid=null;resetExercisePhotoState();render()">Close</button></div>`)}
+function routine(){let a=list(),wd=weekDone(),sk=streak();root(topHtml()+`<div class="daybar"><button class="arrow" onclick="moveDay(-1)">‹</button><div class="day">${days[dayIndex]}</div><button class="arrow" onclick="moveDay(1)">›</button></div><div class="content"><div class="card"><div class="name">${esc(tab().name)}</div><div class="meta">Streak: ${sk} | This week: ${wd}/7</div></div>${a.length?a.map(card).join(''):`<div class="card">No exercises for ${days[dayIndex]}. Tap Edit to add some.</div>`}</div><div class="bottom"><button class="btn dark" onclick="openAddExercise()">Edit</button><button class="btn" onclick="currentScreen='calendar';render()">Calendar</button><button class="btn green" onclick="startRoutine()">Start</button></div>`)}
+
+</script></body></html>
