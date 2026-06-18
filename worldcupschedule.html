@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>World Cup 2026 Schedule</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #fff; color: #111; }
+    body { font-family: Arial, Helvetica, sans-serif; }
+    main { height: 100vh; overflow-y: auto; padding: 10px 14px 30px; }
+    .topbar { display: flex; justify-content: flex-end; padding: 4px 0 8px; }
+    .reset-btn { border: 1px solid #bbb; border-radius: 8px; background: #fff; color: #111; padding: 7px 10px; font-weight: 700; }
+    .day { border-bottom: 1px solid #e5e5e5; padding: 16px 0; }
+    .day.today { scroll-margin-top: 10px; }
+    .day-title { margin: 0 0 10px; font-size: 22px; font-weight: 700; }
+    .games { min-height: 58px; display: grid; gap: 8px; padding: 2px 0; }
+    .game {
+      display: grid;
+      grid-template-columns: 64px 1fr 116px 72px;
+      gap: 10px;
+      align-items: center;
+      background: #fff;
+      border: 2px solid #198754;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .game.record { border-color: #dc3545; }
+    .game.watched { background: #f2f2f2; border-color: #aaa; color: #777; }
+    .time { font-weight: 700; white-space: nowrap; }
+    .teams { font-weight: 700; line-height: 1.25; }
+    .stage { color: #666; font-size: 13px; margin-top: 2px; }
+    .side { justify-self: end; text-align: right; }
+    .pill {
+      display: inline-block;
+      white-space: nowrap;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #198754;
+      color: #fff;
+    }
+    .record .pill { background: #dc3545; }
+    .channel { margin-top: 6px; font-size: 13px; font-weight: 700; color: #111; }
+    .done { display: none; margin-top: 6px; font-size: 12px; font-weight: 700; color: #777; }
+    .watched .stage, .watched .channel { color: #777; }
+    .watched .pill { background: #777; }
+    .watched .done { display: block; }
+    .move-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      justify-self: end;
+    }
+    .move-buttons button {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #bbb;
+      border-radius: 8px;
+      background: #fff;
+      color: #111;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .move-buttons button:disabled {
+      opacity: .25;
+      cursor: not-allowed;
+    }
+    @media (max-width: 650px) {
+      main { padding: 8px 10px 24px; }
+      .day-title { font-size: 20px; }
+      .game { grid-template-columns: 54px 1fr 72px; gap: 8px; }
+      .side { grid-column: 1 / 3; justify-self: start; text-align: left; }
+      .move-buttons { grid-column: 3; grid-row: 2; }
+    }
+  </style>
+</head>
+<body>
+  <main id="schedule">
+    <div class="topbar"><button class="reset-btn" id="resetBtn" type="button">Reset</button></div>
+    <div id="days"></div>
+  </main>
+
+  <script>
+    const fixtures = [{"id":1,"date":"2026-06-11","time":"20:00","stage":"Group A","teams":"Mexico vs South Africa","channel":"ITV"},{"id":2,"date":"2026-06-12","time":"03:00","stage":"Group A","teams":"South Korea vs Czech Republic","channel":"ITV"},{"id":3,"date":"2026-06-12","time":"20:00","stage":"Group B","teams":"Canada vs Bosnia & Herzegovina","channel":"BBC"},{"id":4,"date":"2026-06-13","time":"02:00","stage":"Group D","teams":"USA vs Paraguay","channel":"BBC"},{"id":5,"date":"2026-06-13","time":"20:00","stage":"Group B","teams":"Qatar vs Switzerland","channel":"ITV"},{"id":6,"date":"2026-06-13","time":"23:00","stage":"Group C","teams":"Brazil vs Morocco","channel":"BBC"},{"id":7,"date":"2026-06-14","time":"02:00","stage":"Group C","teams":"Haiti vs Scotland","channel":"BBC"},{"id":8,"date":"2026-06-14","time":"05:00","stage":"Group D","teams":"Australia vs Turkey","channel":"ITV"},{"id":9,"date":"2026-06-14","time":"18:00","stage":"Group E","teams":"Germany vs Curacao","channel":"ITV"},{"id":10,"date":"2026-06-14","time":"21:00","stage":"Group F","teams":"Netherlands vs Japan","channel":"ITV"},{"id":11,"date":"2026-06-15","time":"00:00","stage":"Group E","teams":"Ivory Coast vs Ecuador","channel":"BBC"},{"id":12,"date":"2026-06-15","time":"03:00","stage":"Group F","teams":"Sweden vs Tunisia","channel":"ITV"},{"id":13,"date":"2026-06-15","time":"17:00","stage":"Group H","teams":"Spain vs Cape Verde","channel":"ITV"},{"id":14,"date":"2026-06-15","time":"20:00","stage":"Group G","teams":"Belgium vs Egypt","channel":"BBC"},{"id":15,"date":"2026-06-15","time":"23:00","stage":"Group H","teams":"Saudi Arabia vs Uruguay","channel":"ITV"},{"id":16,"date":"2026-06-16","time":"02:00","stage":"Group G","teams":"Iran vs New Zealand","channel":"BBC"},{"id":17,"date":"2026-06-16","time":"20:00","stage":"Group I","teams":"France vs Senegal","channel":"BBC"},{"id":18,"date":"2026-06-16","time":"23:00","stage":"Group I","teams":"Iraq vs Norway","channel":"BBC"},{"id":19,"date":"2026-06-17","time":"02:00","stage":"Group J","teams":"Argentina vs Algeria","channel":"ITV"},{"id":20,"date":"2026-06-17","time":"05:00","stage":"Group J","teams":"Austria vs Jordan","channel":"BBC"},{"id":21,"date":"2026-06-17","time":"18:00","stage":"Group K","teams":"Portugal vs DR Congo","channel":"BBC"},{"id":22,"date":"2026-06-17","time":"21:00","stage":"Group L","teams":"England vs Croatia","channel":"ITV"},{"id":23,"date":"2026-06-18","time":"00:00","stage":"Group L","teams":"Ghana vs Panama","channel":"ITV"},{"id":24,"date":"2026-06-18","time":"03:00","stage":"Group K","teams":"Uzbekistan vs Colombia","channel":"BBC"},{"id":25,"date":"2026-06-18","time":"17:00","stage":"Group A","teams":"Czech Republic vs South Africa","channel":"BBC"},{"id":26,"date":"2026-06-18","time":"20:00","stage":"Group B","teams":"Switzerland vs Bosnia & Herzegovina","channel":"ITV"},{"id":27,"date":"2026-06-18","time":"23:00","stage":"Group B","teams":"Canada vs Qatar","channel":"ITV"},{"id":28,"date":"2026-06-19","time":"02:00","stage":"Group A","teams":"Mexico vs South Korea","channel":"BBC"},{"id":29,"date":"2026-06-19","time":"20:00","stage":"Group D","teams":"USA vs Australia","channel":"BBC"},{"id":30,"date":"2026-06-19","time":"23:00","stage":"Group C","teams":"Scotland vs Morocco","channel":"ITV"},{"id":31,"date":"2026-06-20","time":"01:30","stage":"Group C","teams":"Brazil vs Haiti","channel":"ITV"},{"id":32,"date":"2026-06-20","time":"04:00","stage":"Group D","teams":"Turkey vs Paraguay","channel":"ITV"},{"id":33,"date":"2026-06-20","time":"18:00","stage":"Group F","teams":"Netherlands vs Sweden","channel":"BBC"},{"id":34,"date":"2026-06-20","time":"21:00","stage":"Group E","teams":"Germany vs Ivory Coast","channel":"ITV"},{"id":35,"date":"2026-06-21","time":"01:00","stage":"Group E","teams":"Ecuador vs Curacao","channel":"BBC"},{"id":36,"date":"2026-06-21","time":"05:00","stage":"Group F","teams":"Tunisia vs Japan","channel":"BBC"},{"id":37,"date":"2026-06-21","time":"17:00","stage":"Group H","teams":"Spain vs Saudi Arabia","channel":"BBC"},{"id":38,"date":"2026-06-21","time":"20:00","stage":"Group G","teams":"Belgium vs Iran","channel":"ITV"},{"id":39,"date":"2026-06-21","time":"23:00","stage":"Group H","teams":"Uruguay vs Cape Verde","channel":"BBC"},{"id":40,"date":"2026-06-22","time":"02:00","stage":"Group G","teams":"New Zealand vs Egypt","channel":"ITV"},{"id":41,"date":"2026-06-22","time":"18:00","stage":"Group J","teams":"Argentina vs Austria","channel":"BBC"},{"id":42,"date":"2026-06-22","time":"22:00","stage":"Group I","teams":"France vs Iraq","channel":"BBC"},{"id":43,"date":"2026-06-23","time":"01:00","stage":"Group I","teams":"Norway vs Senegal","channel":"ITV"},{"id":44,"date":"2026-06-23","time":"04:00","stage":"Group J","teams":"Jordan vs Algeria","channel":"ITV"},{"id":45,"date":"2026-06-23","time":"18:00","stage":"Group K","teams":"Portugal vs Uzbekistan","channel":"ITV"},{"id":46,"date":"2026-06-23","time":"21:00","stage":"Group L","teams":"England vs Ghana","channel":"BBC"},{"id":47,"date":"2026-06-24","time":"00:00","stage":"Group L","teams":"Panama vs Croatia","channel":"BBC"},{"id":48,"date":"2026-06-24","time":"03:00","stage":"Group K","teams":"Colombia vs DR Congo","channel":"ITV"},{"id":49,"date":"2026-06-24","time":"20:00","stage":"Group B","teams":"Switzerland vs Canada","channel":"ITV"},{"id":50,"date":"2026-06-24","time":"20:00","stage":"Group B","teams":"Bosnia & Herzegovina vs Qatar","channel":"ITV"},{"id":51,"date":"2026-06-24","time":"23:00","stage":"Group C","teams":"Morocco vs Haiti","channel":"BBC"},{"id":52,"date":"2026-06-24","time":"23:00","stage":"Group C","teams":"Scotland vs Brazil","channel":"BBC"},{"id":53,"date":"2026-06-25","time":"02:00","stage":"Group A","teams":"South Africa vs South Korea","channel":"BBC"},{"id":54,"date":"2026-06-25","time":"02:00","stage":"Group A","teams":"Czech Republic vs Mexico","channel":"BBC"},{"id":55,"date":"2026-06-25","time":"21:00","stage":"Group E","teams":"Curacao vs Ivory Coast","channel":"BBC"},{"id":56,"date":"2026-06-25","time":"21:00","stage":"Group E","teams":"Ecuador vs Germany","channel":"BBC"},{"id":57,"date":"2026-06-26","time":"00:00","stage":"Group F","teams":"Tunisia vs Netherlands","channel":"BBC"},{"id":58,"date":"2026-06-26","time":"00:00","stage":"Group F","teams":"Japan vs Sweden","channel":"BBC"},{"id":59,"date":"2026-06-26","time":"03:00","stage":"Group D","teams":"Turkey vs USA","channel":"ITV"},{"id":60,"date":"2026-06-26","time":"03:00","stage":"Group D","teams":"Paraguay vs Australia","channel":"ITV"},{"id":61,"date":"2026-06-26","time":"20:00","stage":"Group I","teams":"Norway vs France","channel":"ITV"},{"id":62,"date":"2026-06-26","time":"20:00","stage":"Group I","teams":"Senegal vs Iraq","channel":"ITV"},{"id":63,"date":"2026-06-27","time":"01:00","stage":"Group H","teams":"Cape Verde vs Saudi Arabia","channel":"ITV"},{"id":64,"date":"2026-06-27","time":"01:00","stage":"Group H","teams":"Uruguay vs Spain","channel":"ITV"},{"id":65,"date":"2026-06-27","time":"04:00","stage":"Group G","teams":"New Zealand vs Belgium","channel":"BBC"},{"id":66,"date":"2026-06-27","time":"04:00","stage":"Group G","teams":"Egypt vs Iran","channel":"BBC"},{"id":67,"date":"2026-06-27","time":"22:00","stage":"Group L","teams":"Panama vs England","channel":"ITV"},{"id":68,"date":"2026-06-27","time":"22:00","stage":"Group L","teams":"Croatia vs Ghana","channel":"ITV"},{"id":69,"date":"2026-06-28","time":"00:30","stage":"Group K","teams":"Colombia vs Portugal","channel":"BBC"},{"id":70,"date":"2026-06-28","time":"00:30","stage":"Group K","teams":"DR Congo vs Uzbekistan","channel":"BBC"},{"id":71,"date":"2026-06-28","time":"03:00","stage":"Group J","teams":"Algeria vs Austria","channel":"BBC"},{"id":72,"date":"2026-06-28","time":"03:00","stage":"Group J","teams":"Jordan vs Argentina","channel":"BBC"},{"id":73,"date":"2026-06-28","time":"20:00","stage":"Round of 32","teams":"Group A runners-up vs Group B runners-up","channel":"TBC"},{"id":76,"date":"2026-06-29","time":"18:00","stage":"Round of 32","teams":"Group C winners vs Group F runners-up","channel":"TBC"},{"id":74,"date":"2026-06-29","time":"21:30","stage":"Round of 32","teams":"Group E winners vs Group A/B/C/D/F third place","channel":"TBC"},{"id":75,"date":"2026-06-30","time":"02:00","stage":"Round of 32","teams":"Group F winners vs Group C runners-up","channel":"TBC"},{"id":78,"date":"2026-06-30","time":"18:00","stage":"Round of 32","teams":"Group E runners-up vs Group I runners-up","channel":"TBC"},{"id":77,"date":"2026-06-30","time":"22:00","stage":"Round of 32","teams":"Group I winners vs Group C/D/F/G/H third place","channel":"TBC"},{"id":79,"date":"2026-07-01","time":"02:00","stage":"Round of 32","teams":"Group A winners vs Group C/E/F/H/I third place","channel":"TBC"},{"id":80,"date":"2026-07-01","time":"17:00","stage":"Round of 32","teams":"Group L winners vs Group E/H/I/J/K third place","channel":"TBC"},{"id":82,"date":"2026-07-01","time":"21:00","stage":"Round of 32","teams":"Group G winners vs Group A/E/H/I/J third place","channel":"TBC"},{"id":81,"date":"2026-07-02","time":"01:00","stage":"Round of 32","teams":"Group D winners vs Group B/E/F/I/J third place","channel":"TBC"},{"id":84,"date":"2026-07-02","time":"20:00","stage":"Round of 32","teams":"Group H winners vs Group J runners-up","channel":"TBC"},{"id":83,"date":"2026-07-03","time":"00:00","stage":"Round of 32","teams":"Group K runners-up vs Group L runners-up","channel":"TBC"},{"id":85,"date":"2026-07-03","time":"04:00","stage":"Round of 32","teams":"Group B winners vs Group E/F/G/I/J third place","channel":"TBC"},{"id":88,"date":"2026-07-03","time":"19:00","stage":"Round of 32","teams":"Group D runners-up vs Group G runners-up","channel":"TBC"},{"id":86,"date":"2026-07-03","time":"23:00","stage":"Round of 32","teams":"Group J winners vs Group H runners-up","channel":"TBC"},{"id":87,"date":"2026-07-04","time":"02:30","stage":"Round of 32","teams":"Group K winners vs Group D/E/I/J/L third place","channel":"TBC"},{"id":90,"date":"2026-07-04","time":"18:00","stage":"Round of 16","teams":"Match 73 winners vs Match 75 winners","channel":"TBC"},{"id":89,"date":"2026-07-04","time":"22:00","stage":"Round of 16","teams":"Match 74 winners vs Match 77 winners","channel":"TBC"},{"id":91,"date":"2026-07-05","time":"21:00","stage":"Round of 16","teams":"Match 76 winners vs Match 78 winners","channel":"TBC"},{"id":92,"date":"2026-07-06","time":"01:00","stage":"Round of 16","teams":"Match 79 winners vs Match 80 winners","channel":"TBC"},{"id":93,"date":"2026-07-06","time":"20:00","stage":"Round of 16","teams":"Match 83 winners vs Match 84 winners","channel":"TBC"},{"id":94,"date":"2026-07-07","time":"01:00","stage":"Round of 16","teams":"Match 81 winners vs Match 82 winners","channel":"TBC"},{"id":95,"date":"2026-07-07","time":"17:00","stage":"Round of 16","teams":"Match 86 winners vs Match 88 winners","channel":"TBC"},{"id":96,"date":"2026-07-07","time":"21:00","stage":"Round of 16","teams":"Match 85 winners vs Match 87 winners","channel":"TBC"},{"id":97,"date":"2026-07-09","time":"21:00","stage":"Quarter-final","teams":"Match 89 winners vs Match 90 winners","channel":"TBC"},{"id":98,"date":"2026-07-10","time":"20:00","stage":"Quarter-final","teams":"Match 93 winners vs Match 94 winners","channel":"TBC"},{"id":99,"date":"2026-07-11","time":"22:00","stage":"Quarter-final","teams":"Match 91 winners vs Match 92 winners","channel":"TBC"},{"id":100,"date":"2026-07-12","time":"02:00","stage":"Quarter-final","teams":"Match 95 winners vs Match 96 winners","channel":"TBC"},{"id":101,"date":"2026-07-14","time":"20:00","stage":"Semi-final","teams":"Match 97 winners vs Match 98 winners","channel":"TBC"},{"id":102,"date":"2026-07-15","time":"20:00","stage":"Semi-final","teams":"Match 99 winners vs Match 100 winners","channel":"TBC"},{"id":103,"date":"2026-07-18","time":"22:00","stage":"Third Place Playoff","teams":"Match 101 losers vs Match 102 losers","channel":"TBC"},{"id":104,"date":"2026-07-19","time":"20:00","stage":"Final","teams":"Match 101 winners vs Match 102 winners","channel":"TBC"}];
+    const STORE_KEY = 'wc26-spoiler-safe-daily-schedule-v11';
+    const OLD_KEYS = [];
+    const byId = Object.fromEntries(fixtures.map(f => [String(f.id), f]));
+
+    const fmt = new Intl.DateTimeFormat('en-GB', {
+      weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC'
+    });
+
+    function utcDate(dateString) {
+      const [y, m, d] = dateString.split('-').map(Number);
+      return new Date(Date.UTC(y, m - 1, d));
+    }
+
+    function isoDate(date) { return date.toISOString().slice(0, 10); }
+
+    function ukTodayIso() {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(new Date());
+      const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+      return `${values.year}-${values.month}-${values.day}`;
+    }
+
+    function addDays(dateString, offset) {
+      const d = utcDate(dateString);
+      d.setUTCDate(d.getUTCDate() + offset);
+      return isoDate(d);
+    }
+
+    function dateRange(start, end) {
+      const days = [];
+      let d = utcDate(start);
+      const last = utcDate(end);
+      while (d <= last) {
+        days.push(isoDate(d));
+        d.setUTCDate(d.getUTCDate() + 1);
+      }
+      return days;
+    }
+
+    const allDays = dateRange(fixtures[0].date, fixtures[fixtures.length - 1].date);
+    const todayIso = ukTodayIso();
+    const keepFromIso = addDays(todayIso, -1);
+    const visibleDays = allDays.filter(day => day >= keepFromIso);
+
+    function defaultState() {
+      const assigned = {};
+      const order = {};
+      const watched = {};
+      const record = {};
+      allDays.forEach(day => order[day] = []);
+      fixtures.forEach(f => {
+        const id = String(f.id);
+        assigned[id] = f.date;
+        watched[id] = false;
+        record[id] = false;
+        order[f.date].push(id);
+      });
+      return { assigned, order, watched, record };
+    }
+
+    function readSaved(key) {
+      try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+    }
+
+    function applySaved(base, saved) {
+      if (!saved || typeof saved !== 'object') return base;
+
+      if (saved.assigned && typeof saved.assigned === 'object') {
+        fixtures.forEach(f => {
+          const id = String(f.id);
+          if (allDays.includes(saved.assigned[id])) base.assigned[id] = saved.assigned[id];
+        });
+      }
+
+      if (saved.watched && typeof saved.watched === 'object') {
+        fixtures.forEach(f => { base.watched[String(f.id)] = Boolean(saved.watched[String(f.id)]); });
+      }
+
+      if (saved.record && typeof saved.record === 'object') {
+        fixtures.forEach(f => { base.record[String(f.id)] = Boolean(saved.record[String(f.id)]); });
+      }
+
+      if (saved.order && typeof saved.order === 'object') {
+        allDays.forEach(day => base.order[day] = []);
+        const seen = new Set();
+        allDays.forEach(day => {
+          const savedOrder = Array.isArray(saved.order[day]) ? saved.order[day].map(String) : [];
+          savedOrder.forEach(id => {
+            if (byId[id] && base.assigned[id] === day && !seen.has(id)) {
+              base.order[day].push(id);
+              seen.add(id);
+            }
+          });
+        });
+        fixtures.forEach(f => {
+          const id = String(f.id);
+          if (!seen.has(id)) base.order[base.assigned[id]].push(id);
+        });
+      } else {
+        allDays.forEach(day => base.order[day] = []);
+        fixtures.forEach(f => base.order[base.assigned[String(f.id)]].push(String(f.id)));
+      }
+
+      return base;
+    }
+
+    function loadState() {
+      let state = defaultState();
+      OLD_KEYS.forEach(key => state = applySaved(state, readSaved(key)));
+      state = applySaved(state, readSaved(STORE_KEY));
+      return state;
+    }
+
+    let state = loadState();
+    sortAllDays();
+    let tapTimer = null;
+    let tapId = null;
+
+    function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+    function removeFromOrders(id) {
+      allDays.forEach(day => { state.order[day] = state.order[day].filter(x => x !== id); });
+    }
+
+    function sortDay(day) {
+      if (!state.order[day]) return;
+      state.order[day].sort((a, b) => {
+        const fa = byId[String(a)];
+        const fb = byId[String(b)];
+        if (!fa || !fb) return 0;
+        return fa.date.localeCompare(fb.date) || fa.time.localeCompare(fb.time) || Number(fa.id) - Number(fb.id);
+      });
+    }
+
+    function sortAllDays() {
+      allDays.forEach(sortDay);
+    }
+
+    function moveGame(id, targetDay, beforeId = null) {
+      id = String(id);
+      beforeId = beforeId ? String(beforeId) : null;
+      if (!byId[id] || !allDays.includes(targetDay)) return;
+      if (beforeId === id && state.assigned[id] === targetDay) return;
+
+      removeFromOrders(id);
+      state.assigned[id] = targetDay;
+
+      state.order[targetDay].push(id);
+      sortDay(targetDay);
+
+      save();
+      render();
+    }
+
+    function shiftGame(id, offset) {
+      id = String(id);
+      const currentDay = state.assigned[id];
+      const currentIndex = visibleDays.indexOf(currentDay);
+      if (currentIndex === -1) return;
+
+      const targetIndex = currentIndex + offset;
+      if (targetIndex < 0 || targetIndex >= visibleDays.length) return;
+
+      state.record[id] = !state.record[id];
+      moveGame(id, visibleDays[targetIndex]);
+    }
+
+    function handleTap(id) {
+      id = String(id);
+      if (tapTimer && tapId === id) {
+        clearTimeout(tapTimer);
+        tapTimer = null;
+        tapId = null;
+        toggleRecord(id);
+        return;
+      }
+
+      clearTimeout(tapTimer);
+      tapId = id;
+      tapTimer = setTimeout(() => {
+        toggleWatched(id);
+        tapTimer = null;
+        tapId = null;
+      }, 260);
+    }
+
+    function toggleWatched(id) {
+      id = String(id);
+      if (!byId[id]) return;
+      state.watched[id] = !state.watched[id];
+      save();
+      render();
+    }
+
+    function toggleRecord(id) {
+      id = String(id);
+      if (!byId[id]) return;
+      state.record[id] = !state.record[id];
+      save();
+      render();
+    }
+
+    function makeGame(id) {
+      const f = byId[String(id)];
+      const record = Boolean(state.record[String(id)]);
+      const watched = Boolean(state.watched[String(id)]);
+
+      const row = document.createElement('div');
+      row.className = 'game' + (record ? ' record' : '') + (watched ? ' watched' : '');
+      row.dataset.id = String(id);
+
+      const time = document.createElement('div');
+      time.className = 'time';
+      time.textContent = f.time;
+
+      const details = document.createElement('div');
+      const teams = document.createElement('div');
+      teams.className = 'teams';
+      teams.textContent = f.teams;
+      const stage = document.createElement('div');
+      stage.className = 'stage';
+      stage.textContent = f.stage;
+      details.append(teams, stage);
+
+      const pill = document.createElement('div');
+      pill.className = 'pill';
+      pill.textContent = record ? 'ON DEMAND' : 'LIVE GAME';
+
+      const channel = document.createElement('div');
+      channel.className = 'channel';
+      channel.textContent = f.channel || 'TBC';
+
+      const done = document.createElement('div');
+      done.className = 'done';
+      done.textContent = 'DONE';
+
+      const side = document.createElement('div');
+      side.className = 'side';
+      side.append(pill, channel, done);
+
+      const currentDay = state.assigned[String(id)];
+      const currentIndex = visibleDays.indexOf(currentDay);
+
+      const up = document.createElement('button');
+      up.type = 'button';
+      up.textContent = '↑';
+      up.title = 'Move to previous day';
+      up.setAttribute('aria-label', 'Move game to previous day');
+      up.disabled = currentIndex <= 0;
+      up.addEventListener('pointerup', e => e.stopPropagation());
+      up.addEventListener('click', e => {
+        e.stopPropagation();
+        shiftGame(String(id), -1);
+      });
+
+      const down = document.createElement('button');
+      down.type = 'button';
+      down.textContent = '↓';
+      down.title = 'Move to next day';
+      down.setAttribute('aria-label', 'Move game to next day');
+      down.disabled = currentIndex === -1 || currentIndex >= visibleDays.length - 1;
+      down.addEventListener('pointerup', e => e.stopPropagation());
+      down.addEventListener('click', e => {
+        e.stopPropagation();
+        shiftGame(String(id), 1);
+      });
+
+      const controls = document.createElement('div');
+      controls.className = 'move-buttons';
+      controls.append(up, down);
+
+      row.append(time, details, side, controls);
+      row.addEventListener('pointerup', e => {
+        if (e.target.closest('button')) return;
+        handleTap(id);
+      });
+      row.addEventListener('contextmenu', e => e.preventDefault());
+      return row;
+    }
+
+    function render() {
+      sortAllDays();
+      const schedule = document.getElementById('days');
+      schedule.textContent = '';
+
+      visibleDays.forEach(day => {
+        const section = document.createElement('section');
+        section.className = 'day' + (day === todayIso ? ' today' : '');
+        section.dataset.date = day;
+
+        const title = document.createElement('h2');
+        title.className = 'day-title';
+        title.textContent = fmt.format(utcDate(day));
+
+        const list = document.createElement('div');
+        list.className = 'games';
+        list.dataset.day = day;
+
+        (state.order[day] || []).forEach(id => list.appendChild(makeGame(id)));
+        section.append(title, list);
+        schedule.appendChild(section);
+      });
+    }
+
+    function scrollToToday() {
+      const todaySection = document.querySelector('.day.today');
+      const firstVisibleSection = document.querySelector('.day');
+      const target = todaySection || firstVisibleSection;
+      if (target) target.scrollIntoView({ block: 'start' });
+    }
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      [
+        STORE_KEY,
+        'wc26-spoiler-safe-daily-schedule-v3',
+        'wc26-spoiler-safe-daily-schedule-v4',
+        'wc26-spoiler-safe-daily-schedule-v5',
+        'wc26-spoiler-safe-daily-schedule-v6',
+        'wc26-spoiler-safe-daily-schedule-v7',
+        'wc26-spoiler-safe-daily-schedule-v8',
+        'wc26-spoiler-safe-daily-schedule-v9',
+        'wc26-spoiler-safe-daily-schedule-v10',
+        'wc26-spoiler-safe-daily-schedule-v11'
+      ].forEach(key => localStorage.removeItem(key));
+      state = defaultState();
+      save();
+      render();
+      requestAnimationFrame(scrollToToday);
+    });
+
+    render();
+    requestAnimationFrame(scrollToToday);
+  </script>
+</body>
+</html>
