@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Lethia Workout JSON Creator v3</title>
+<style>
+:root{
+  --bg:#f5f2eb;
+  --panel:#fffefa;
+  --ink:#111c17;
+  --muted:#6f7971;
+  --line:#dfe4dc;
+  --soft:#eef3ee;
+  --purple:#6e56cf;
+  --blue:#2f6f94;
+  --green:#1f7a54;
+  --red:#a14a42;
+  --shadow:0 18px 46px rgba(31,35,30,.10);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(110,86,207,.10), transparent 28%),
+    radial-gradient(circle at 90% 12%, rgba(47,111,148,.11), transparent 26%),
+    var(--bg);
+  color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.wrap{width:min(1180px,100%);margin:0 auto;padding:24px 16px 42px}
+.hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;margin-bottom:18px}
+h1{margin:0;font-size:34px;letter-spacing:-.06em}
+.hero p{margin:6px 0 0;color:var(--muted);font-weight:750;line-height:1.35}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+button,.fileBtn{
+  border:0;
+  border-radius:14px;
+  padding:11px 14px;
+  font-weight:920;
+  cursor:pointer;
+  color:var(--ink);
+  background:var(--soft);
+  font-size:14px;
+}
+button.primary{background:var(--ink);color:#fff}
+button.purple{background:var(--purple);color:#fff}
+button.danger{background:#fff0ee;color:var(--red)}
+button.green{background:#e8f5ee;color:var(--green)}
+button.small{font-size:12px;padding:8px 10px;border-radius:12px}
+.fileBtn input{display:none}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:18px;align-items:start}
+.card{
+  background:rgba(255,254,250,.94);
+  border:1px solid var(--line);
+  border-radius:24px;
+  box-shadow:var(--shadow);
+}
+.cardHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 0}
+.cardHead h2{margin:0;font-size:20px;letter-spacing:-.045em}
+.cardBody{padding:16px}
+.workoutList{display:grid;gap:14px}
+.workout{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:14px;
+}
+.workoutTop{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+.workoutTitle{display:grid;gap:10px}
+label{font-size:11px;color:var(--muted);font-weight:930;text-transform:uppercase;letter-spacing:.08em}
+.field{display:grid;gap:6px}
+input,textarea,select{
+  width:100%;
+  border:1px solid var(--line);
+  background:#fbfcfa;
+  border-radius:14px;
+  padding:11px 12px;
+  color:var(--ink);
+  font-weight:780;
+  font-size:14px;
+  outline:none;
+}
+textarea{resize:vertical;min-height:64px}
+input:focus,textarea:focus,select:focus{border-color:rgba(110,86,207,.45);box-shadow:0 0 0 3px rgba(110,86,207,.08)}
+.row{display:grid;grid-template-columns:1fr 150px 145px;gap:10px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.scheduleModes,.days{display:flex;gap:7px;flex-wrap:wrap}
+.chip{
+  border:1px solid var(--line);
+  background:#fbfcfa;
+  color:var(--muted);
+  border-radius:999px;
+  padding:8px 10px;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+  user-select:none;
+}
+.chip.active{background:#efeafb;color:var(--purple);border-color:rgba(110,86,207,.22)}
+.day.active{background:#e9f3f7;color:var(--blue);border-color:rgba(47,111,148,.22)}
+.scheduleBlock{margin-top:12px;display:grid;gap:10px}
+.exercises{display:grid;gap:10px;margin-top:13px}
+.exercise{
+  border:1px solid var(--line);
+  background:#fbfcfa;
+  border-radius:18px;
+  padding:11px;
+}
+.exerciseHead{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start}
+.metrics{display:grid;grid-template-columns:80px 80px 100px;gap:8px;margin-top:8px}
+.presetBar{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.sectionTitle{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:930;margin:16px 0 8px}
+.hint{font-size:12px;color:var(--muted);font-weight:700;line-height:1.35}
+.status{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:14px;
+  background:var(--soft);
+  color:var(--muted);
+  font-weight:830;
+  font-size:13px;
+}
+.status.ok{background:#e8f5ee;color:var(--green)}
+.status.bad{background:#fff0ee;color:var(--red)}
+
+.weekPreview{display:grid;gap:10px;margin:12px 0 14px}
+.weekDay{
+  border:1px solid var(--line);
+  background:#fbfcfa;
+  border-radius:16px;
+  padding:10px;
+}
+.weekDay h3{
+  margin:0 0 7px;
+  font-size:13px;
+  letter-spacing:.02em;
+  color:var(--ink);
+}
+.weekEmpty{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:750;
+}
+.weekWorkout{
+  border-top:1px solid var(--line);
+  padding-top:8px;
+  margin-top:8px;
+}
+.weekWorkout:first-of-type{
+  border-top:0;
+  padding-top:0;
+  margin-top:0;
+}
+.weekWorkoutTitle{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  font-size:12px;
+  font-weight:930;
+  color:var(--ink);
+}
+.weekWorkoutTime{
+  color:var(--blue);
+  white-space:nowrap;
+}
+.weekExercises{
+  margin:6px 0 0;
+  padding-left:16px;
+  color:var(--muted);
+  font-size:11.5px;
+  font-weight:760;
+  line-height:1.35;
+}
+.weekExercises li{margin:2px 0}
+.previewSubhead{
+  margin:16px 0 8px;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--muted);
+  font-weight:930;
+}
+
+.preview{
+  position:sticky;
+  top:12px;
+}
+pre{
+  white-space:pre-wrap;
+  word-break:break-word;
+  max-height:560px;
+  overflow:auto;
+  background:#101d18;
+  color:#f6f1e8;
+  border-radius:18px;
+  padding:14px;
+  font-size:12px;
+  line-height:1.42;
+}
+.empty{
+  border:1px dashed var(--line);
+  border-radius:18px;
+  padding:24px;
+  text-align:center;
+  color:var(--muted);
+  font-weight:820;
+}
+.breathingPanel{
+  display:none;
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:12px;
+  margin-top:10px;
+  background:#f9fbf8;
+}
+.breathingPanel.open{display:block}
+.breathingPanelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.breathingPanelHead strong{font-size:14px}
+.breathingGrid{display:grid;gap:8px}
+.breathingItem{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fbfcfa;
+}
+.breathingItem strong{display:block;font-size:13px}
+.breathingItem small{display:block;color:var(--muted);font-size:11px;font-weight:720;line-height:1.3;margin-top:3px}
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .preview{position:static}
+  .row,.row2{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr 1fr 1fr}
+  .hero{grid-template-columns:1fr}
+  .actions{justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <h1>Lethia Workout JSON Creator</h1>
+      <p>Create one or multiple workouts on your PC, download the JSON, then import it in Lethia → Extras → Import workouts.</p>
+    </div>
+    <div class="actions">
+      <button class="primary" id="addWorkoutBtn">+ Add workout</button>
+      <button class="purple" id="downloadBtn">Download JSON</button>
+      <button id="copyBtn">Copy JSON</button>
+      <label class="fileBtn">Load JSON <input type="file" id="loadJson" accept="application/json,.json"/></label>
+      <button class="danger" id="clearBtn">Clear</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <main class="card">
+      <div class="cardHead">
+        <h2>Workouts</h2>
+        <span class="hint" id="countHint">0 workouts</span>
+      </div>
+      <div class="cardBody">
+        <div id="workoutList" class="workoutList"></div>
+        <div id="emptyState" class="empty">No workouts yet. Add one to start.</div>
+      </div>
+    </main>
+
+    <aside class="card preview">
+      <div class="cardHead">
+        <h2>Import JSON</h2>
+      </div>
+      <div class="cardBody">
+        <div class="hint">Time is required. Weekly workouts need at least one day. One-date workouts need a date.</div>
+        <div id="status" class="status">Ready.</div>
+        <div class="previewSubhead">Week preview</div>
+        <div id="weekPreview" class="weekPreview"></div>
+        <div class="previewSubhead">Import JSON</div>
+        <pre id="jsonPreview">{}</pre>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAY_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+const BREATHING_PRESETS = [
+  {name:'Box breathing', seconds:240, notes:'Pattern: inhale 4 seconds, hold 4 seconds, exhale 4 seconds, hold 4 seconds. Repeat gently for the timer.'},
+  {name:'4-7-8 breathing', seconds:240, notes:'Pattern: inhale through the nose for 4 seconds, hold for 7 seconds, exhale slowly for 8 seconds. Repeat calmly.'},
+  {name:'Belly breathing', seconds:300, notes:'Let the breath move low into the belly without forcing it. Breathe in gently through the nose and out through the mouth.'},
+  {name:'Controlled breathing', seconds:180, notes:'Pattern: breathe in for 3 seconds, hold for 3 seconds, breathe out for 3 seconds, hold for 3 seconds.'},
+  {name:'Equal breathing', seconds:240, notes:'Pattern: inhale for 4 seconds and exhale for 4 seconds. Keep the rhythm smooth and even.'},
+  {name:'Pursed-lip reset', seconds:120, notes:'Inhale gently through the nose, then exhale slowly through pursed lips for longer than the inhale.'}
+];
+
+let workouts = JSON.parse(localStorage.getItem('lethiaWorkoutCreatorV2') || '[]');
+
+function uid(){ return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2); }
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+function saveLocal(){ localStorage.setItem('lethiaWorkoutCreatorV2', JSON.stringify(workouts)); }
+function newWorkout(){
+  return {id:uid(), name:'', scheduleMode:'daily', days:[], date:'', time:'07:30', showBreathing:false, exercises:[newExercise()]};
+}
+function newExercise(seed={}){
+  return {
+    id: uid(),
+    name: seed.name ?? '',
+    sets: seed.sets ?? 1,
+    reps: seed.reps ?? 0,
+    seconds: seed.seconds ?? 0,
+    notes: seed.notes ?? '',
+    image: seed.image ?? ''
+  };
+}
+function normalizeLoadedExercise(ex){
+  return newExercise({
+    name: ex.name || ex.title || ex.exercise || '',
+    sets: ex.sets ?? '',
+    reps: ex.reps ?? ex.repetitions ?? ex.repCount ?? 0,
+    seconds: ex.seconds ?? ex.durationSeconds ?? ex.timer ?? 0,
+    notes: ex.notes || ex.note || '',
+    image: ex.image || ex.photo || ''
+  });
+}
+function parseDays(raw){
+  if(!Array.isArray(raw)) return [];
+  return raw.map(d=>{
+    if(typeof d === 'number') return d;
+    const i = DAY_NAMES.findIndex(n=>n.toLowerCase() === String(d).toLowerCase());
+    return i >= 0 ? i : null;
+  }).filter(d=>Number.isInteger(d) && d >= 0 && d <= 6);
+}
+function loadedWorkoutToEditor(raw, index){
+  const schedule = raw.schedule || {};
+  const modeText = String(raw.scheduleMode || raw.repeat || raw.type || schedule.mode || '').toLowerCase();
+  const date = String(raw.date || schedule.date || '');
+  const days = parseDays(raw.days || raw.daysOfWeek || schedule.days || schedule.daysOfWeek || []);
+  const scheduleMode = modeText.includes('daily') || modeText.includes('everyday') || modeText.includes('every day')
+    ? 'daily'
+    : ((modeText.includes('one') || modeText.includes('date') || date) && !days.length ? 'oneoff' : 'weekly');
+  const exercisesRaw = Array.isArray(raw.exercises) ? raw.exercises : [];
+  return {
+    id: uid(),
+    name: raw.name || raw.title || raw.workout || ('Imported workout ' + (index + 1)),
+    scheduleMode,
+    days: scheduleMode === 'weekly' ? days : [],
+    date: scheduleMode === 'oneoff' ? date : '',
+    time: raw.time || raw.startTime || raw.start || schedule.time || '07:30',
+    showBreathing:false,
+    exercises: exercisesRaw.length ? exercisesRaw.map(normalizeLoadedExercise) : [newExercise()]
+  };
+}
+function setStatus(msg, type=''){
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+}
+function workoutToExport(w){
+  const base = {
+    name: String(w.name || 'Workout').trim(),
+    scheduleMode: w.scheduleMode,
+    time: w.time || '',
+    exercises: w.exercises.map(ex=>({
+      name: String(ex.name || 'Exercise').trim(),
+      sets: ex.sets === '' ? undefined : Number(ex.sets || 0),
+      reps: Number(ex.reps || 0),
+      seconds: Number(ex.seconds || 0),
+      notes: String(ex.notes || ''),
+      image: String(ex.image || '')
+    })).map(ex=>{
+      Object.keys(ex).forEach(k=>ex[k] === undefined && delete ex[k]);
+      return ex;
+    })
+  };
+  if(w.scheduleMode === 'weekly'){
+    base.days = [...new Set((w.days || []).map(Number))].sort((a,b)=>a-b);
+    base.daysOfWeek = base.days.map(d=>DAY_NAMES[d]);
+  }
+  if(w.scheduleMode === 'oneoff'){
+    base.date = w.date || '';
+  }
+  return base;
+}
+function buildExport(){
+  return {
+    app:'Lethia',
+    type:'workouts',
+    version:1,
+    exportedAt:new Date().toISOString(),
+    workouts: workouts.map(workoutToExport)
+  };
+}
+function validate(){
+  const errors = [];
+  workouts.forEach((w,i)=>{
+    const label = w.name || ('Workout ' + (i+1));
+    if(!String(w.name || '').trim()) errors.push(label + ': name is blank.');
+    if(!w.time) errors.push(label + ': time is required.');
+    if(w.scheduleMode === 'weekly' && (!w.days || !w.days.length)) errors.push(label + ': choose at least one weekday.');
+    if(w.scheduleMode === 'oneoff' && !w.date) errors.push(label + ': one-date workout needs a date.');
+    if(!w.exercises.length) errors.push(label + ': add at least one exercise.');
+    w.exercises.forEach((ex,j)=>{
+      if(!String(ex.name || '').trim()) errors.push(label + ': exercise ' + (j+1) + ' name is blank.');
+    });
+  });
+  return errors;
+}
+function formatTimer(seconds){
+  const s = Number(seconds || 0);
+  if(!s) return '';
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return m + ':' + String(rem).padStart(2,'0');
+}
+function exerciseSummary(ex){
+  const bits = [];
+  if(ex.sets !== '' && Number(ex.sets || 0) > 0) bits.push(Number(ex.sets) + ' sets');
+  if(Number(ex.reps || 0) > 0) bits.push(Number(ex.reps) + ' reps');
+  if(Number(ex.seconds || 0) > 0) bits.push(formatTimer(ex.seconds) + ' timer');
+  return (ex.name || 'Exercise') + (bits.length ? ' — ' + bits.join(', ') : '');
+}
+function workoutAppearsOnDay(w, dayIndex){
+  if(w.scheduleMode === 'daily') return true;
+  if(w.scheduleMode === 'weekly') return (w.days || []).map(Number).includes(dayIndex);
+  if(w.scheduleMode === 'oneoff' && w.date){
+    const date = new Date(w.date + 'T00:00:00');
+    return !Number.isNaN(date.getTime()) && date.getDay() === dayIndex;
+  }
+  return false;
+}
+function renderWeekPreview(){
+  const root = document.getElementById('weekPreview');
+  if(!root) return;
+  const order = [1,2,3,4,5,6,0];
+  root.innerHTML = order.map(dayIndex=>{
+    const dayWorkouts = workouts.filter(w=>workoutAppearsOnDay(w, dayIndex));
+    const body = dayWorkouts.length ? dayWorkouts.map(w=>`
+      <div class="weekWorkout">
+        <div class="weekWorkoutTitle">
+          <span>${esc(w.name || 'Workout')}</span>
+          <span class="weekWorkoutTime">${esc(w.time || '')}</span>
+        </div>
+        <ul class="weekExercises">
+          ${(w.exercises || []).map(ex=>`<li>${esc(exerciseSummary(ex))}</li>`).join('')}
+        </ul>
+      </div>
+    `).join('') : '<div class="weekEmpty">No workouts</div>';
+    return `
+      <section class="weekDay">
+        <h3>${DAY_NAMES[dayIndex]}</h3>
+        ${body}
+      </section>
+    `;
+  }).join('');
+}
+function updatePreview(){
+  const errors = validate();
+  const data = buildExport();
+  document.getElementById('jsonPreview').textContent = JSON.stringify(data, null, 2);
+  document.getElementById('countHint').textContent = workouts.length + ' workout' + (workouts.length === 1 ? '' : 's');
+  renderWeekPreview();
+  if(!workouts.length) setStatus('Ready. Add a workout.', '');
+  else if(errors.length) setStatus(errors[0] + (errors.length > 1 ? ' +' + (errors.length-1) + ' more' : ''), 'bad');
+  else setStatus('Valid JSON. Ready to import.', 'ok');
+}
+function render(){
+  saveLocal();
+  const list = document.getElementById('workoutList');
+  const empty = document.getElementById('emptyState');
+  empty.style.display = workouts.length ? 'none' : 'block';
+  list.innerHTML = workouts.map((w,wi)=>`
+    <section class="workout" data-wi="${wi}">
+      <div class="workoutTop">
+        <div class="workoutTitle">
+          <div class="field">
+            <label>Workout name</label>
+            <input data-field="name" value="${esc(w.name)}" placeholder="e.g. Morning mobility"/>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Schedule</label>
+              <div class="scheduleModes">
+                ${scheduleChip(w,'daily','Every day')}
+                ${scheduleChip(w,'weekly','Some weekdays')}
+                ${scheduleChip(w,'oneoff','One date')}
+              </div>
+            </div>
+            <div class="field">
+              <label>Time</label>
+              <input data-field="time" type="time" value="${esc(w.time)}"/>
+            </div>
+            ${w.scheduleMode === 'oneoff' ? `
+              <div class="field">
+                <label>Date</label>
+                <input data-field="date" type="date" value="${esc(w.date)}"/>
+              </div>` : `<div></div>`}
+          </div>
+          ${w.scheduleMode === 'weekly' ? `
+            <div class="scheduleBlock">
+              <div class="field">
+                <label>Weekdays</label>
+                <div class="days">${DAY_SHORT.map((d,di)=>`<span class="chip day ${w.days.includes(di)?'active':''}" data-day="${di}">${d}</span>`).join('')}</div>
+              </div>
+              <div class="presetBar">
+                <button class="small" data-preset-days="weekdays">Mon-Fri</button>
+                <button class="small" data-preset-days="mwf">Mon Wed Fri</button>
+                <button class="small" data-preset-days="weekend">Weekend</button>
+                <button class="small" data-preset-days="all">Every day as weekly</button>
+              </div>
+            </div>` : ''}
+        </div>
+        <div class="actions">
+          <button class="small" data-duplicate>Duplicate</button>
+          <button class="small danger" data-delete>Delete</button>
+        </div>
+      </div>
+
+      <div class="sectionTitle">Exercises</div>
+      <div class="presetBar">
+        <button class="small green" data-add-exercise>+ Add exercise</button>
+        <button class="small" data-toggle-breathing>${w.showBreathing ? 'Hide breathing' : '+ Add breathing'}</button>
+      </div>
+
+      <div class="breathingPanel ${w.showBreathing ? 'open' : ''}">
+        <div class="breathingPanelHead">
+          <strong>Breathing presets</strong>
+          <button class="small" data-add-all-breathing>Add all</button>
+        </div>
+        <div class="breathingGrid">
+          ${BREATHING_PRESETS.map((p,pi)=>`
+            <div class="breathingItem">
+              <div>
+                <strong>${esc(p.name)} · ${Math.floor(p.seconds/60)}:${String(p.seconds%60).padStart(2,'0')}</strong>
+                <small>${esc(p.notes)}</small>
+              </div>
+              <button class="small" data-add-breathing="${pi}">Add</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="exercises">
+        ${w.exercises.map((ex,ei)=>exerciseHtml(ex,ei)).join('')}
+      </div>
+    </section>
+  `).join('');
+  bindEvents();
+  updatePreview();
+}
+function scheduleChip(w,mode,label){
+  return `<span class="chip ${w.scheduleMode===mode?'active':''}" data-schedule="${mode}">${label}</span>`;
+}
+function exerciseHtml(ex,ei){
+  return `
+    <div class="exercise" data-ei="${ei}">
+      <div class="exerciseHead">
+        <div class="field">
+          <label>Exercise name</label>
+          <input data-ex-field="name" value="${esc(ex.name)}" placeholder="e.g. Push-ups"/>
+        </div>
+        <button class="small danger" data-delete-exercise>Delete</button>
+      </div>
+      <div class="metrics">
+        <div class="field"><label>Sets</label><input data-ex-field="sets" type="number" min="0" value="${esc(ex.sets)}" placeholder="blank"/></div>
+        <div class="field"><label>Reps</label><input data-ex-field="reps" type="number" min="0" value="${esc(ex.reps)}"/></div>
+        <div class="field"><label>Timer sec</label><input data-ex-field="seconds" type="number" min="0" value="${esc(ex.seconds)}"/></div>
+      </div>
+      <div class="row2" style="margin-top:8px">
+        <div class="field"><label>Notes</label><textarea data-ex-field="notes" placeholder="Optional">${esc(ex.notes)}</textarea></div>
+        <div class="field"><label>Image / photo URL or base64</label><textarea data-ex-field="image" placeholder="Optional">${esc(ex.image)}</textarea></div>
+      </div>
+    </div>
+  `;
+}
+function bindEvents(){
+  document.querySelectorAll('.workout').forEach(section=>{
+    const wi = Number(section.dataset.wi);
+    section.querySelectorAll('[data-field]').forEach(el=>{
+      el.addEventListener('input', ()=>{
+        workouts[wi][el.dataset.field] = el.value;
+        updatePreview();
+        saveLocal();
+      });
+    });
+    section.querySelectorAll('[data-schedule]').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        workouts[wi].scheduleMode = chip.dataset.schedule;
+        if(chip.dataset.schedule === 'weekly' && !workouts[wi].days.length) workouts[wi].days = [1,3,5];
+        render();
+      });
+    });
+    section.querySelectorAll('[data-day]').forEach(day=>{
+      day.addEventListener('click', ()=>{
+        const d = Number(day.dataset.day);
+        const days = new Set(workouts[wi].days || []);
+        days.has(d) ? days.delete(d) : days.add(d);
+        workouts[wi].days = [...days].sort((a,b)=>a-b);
+        render();
+      });
+    });
+    section.querySelectorAll('[data-preset-days]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const p = btn.dataset.presetDays;
+        workouts[wi].days = p === 'weekdays' ? [1,2,3,4,5] : p === 'mwf' ? [1,3,5] : p === 'weekend' ? [0,6] : [0,1,2,3,4,5,6];
+        render();
+      });
+    });
+    section.querySelector('[data-delete]').addEventListener('click', ()=>{
+      if(confirm('Delete this workout?')){
+        workouts.splice(wi,1);
+        render();
+      }
+    });
+    section.querySelector('[data-duplicate]').addEventListener('click', ()=>{
+      const copy = JSON.parse(JSON.stringify(workouts[wi]));
+      copy.id = uid();
+      copy.name = copy.name ? copy.name + ' copy' : 'Workout copy';
+      copy.exercises = copy.exercises.map(ex=>({...ex,id:uid()}));
+      workouts.splice(wi+1,0,copy);
+      render();
+    });
+    section.querySelector('[data-add-exercise]').addEventListener('click', ()=>{
+      workouts[wi].exercises.push(newExercise());
+      render();
+    });
+    section.querySelector('[data-toggle-breathing]').addEventListener('click', ()=>{
+      workouts[wi].showBreathing = !workouts[wi].showBreathing;
+      render();
+    });
+    section.querySelectorAll('[data-add-breathing]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const p = BREATHING_PRESETS[Number(btn.dataset.addBreathing)];
+        workouts[wi].exercises.push(newExercise({name:p.name, sets:1, reps:0, seconds:p.seconds, notes:p.notes}));
+        if(!workouts[wi].name.trim()) workouts[wi].name = 'Breathing';
+        workouts[wi].showBreathing = false;
+        render();
+      });
+    });
+    section.querySelector('[data-add-all-breathing]').addEventListener('click', ()=>{
+      BREATHING_PRESETS.forEach(p=>workouts[wi].exercises.push(newExercise({name:p.name, sets:1, reps:0, seconds:p.seconds, notes:p.notes})));
+      if(!workouts[wi].name.trim()) workouts[wi].name = 'Breathing';
+      workouts[wi].showBreathing = false;
+      render();
+    });
+    section.querySelectorAll('.exercise').forEach(exRow=>{
+      const ei = Number(exRow.dataset.ei);
+      exRow.querySelectorAll('[data-ex-field]').forEach(el=>{
+        el.addEventListener('input', ()=>{
+          const field = el.dataset.exField;
+          workouts[wi].exercises[ei][field] = ['sets','reps','seconds'].includes(field) ? (el.value === '' ? '' : Number(el.value)) : el.value;
+          updatePreview();
+          saveLocal();
+        });
+      });
+      exRow.querySelector('[data-delete-exercise]').addEventListener('click', ()=>{
+        workouts[wi].exercises.splice(ei,1);
+        if(!workouts[wi].exercises.length) workouts[wi].exercises.push(newExercise());
+        render();
+      });
+    });
+  });
+}
+function downloadJson(){
+  const errors = validate();
+  if(errors.length){
+    setStatus('Fix before download: ' + errors[0], 'bad');
+    return;
+  }
+  const blob = new Blob([JSON.stringify(buildExport(), null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = 'lethia-workouts-' + stamp + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setStatus('Downloaded JSON.', 'ok');
+}
+async function copyJson(){
+  try{
+    await navigator.clipboard.writeText(JSON.stringify(buildExport(), null, 2));
+    setStatus('Copied JSON.', 'ok');
+  }catch(e){
+    setStatus('Copy failed. Use the preview box instead.', 'bad');
+  }
+}
+document.getElementById('addWorkoutBtn').addEventListener('click', ()=>{
+  workouts.push(newWorkout());
+  render();
+});
+document.getElementById('downloadBtn').addEventListener('click', downloadJson);
+document.getElementById('copyBtn').addEventListener('click', copyJson);
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  if(confirm('Clear all workouts in this creator?')){
+    workouts = [];
+    render();
+  }
+});
+document.getElementById('loadJson').addEventListener('change', async e=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  try{
+    const parsed = JSON.parse(await file.text());
+    const raw = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.workouts) ? parsed.workouts : (parsed.workout ? [parsed.workout] : []));
+    if(!raw.length) throw new Error('No workouts found.');
+    workouts = raw.map(loadedWorkoutToEditor);
+    render();
+    setStatus('Loaded ' + workouts.length + ' workout' + (workouts.length === 1 ? '' : 's') + '.', 'ok');
+  }catch(err){
+    setStatus('Load failed: ' + err.message, 'bad');
+  }
+  e.target.value = '';
+});
+
+if(!workouts.length){
+  workouts = [newWorkout()];
+}
+render();
+</script>
+</body>
+</html>
