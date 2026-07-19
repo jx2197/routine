@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#5421a8">
+  <title>Commonwealth Games 2026 Schedule</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #fff; color: #111; }
+    body { font-family: Arial, Helvetica, sans-serif; }
+    main { height: 100vh; overflow-y: auto; padding: 10px 14px 34px; }
+    .topbar { position: sticky; top: 0; z-index: 5; padding: 6px 0 9px; background: rgba(255,255,255,.97); border-bottom: 1px solid #eee; }
+    .topbar-main { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+    .heading { min-width: 0; }
+    h1 { margin: 0; font-size: 21px; line-height: 1.15; }
+    .reset-btn { flex: 0 0 auto; border: 1px solid #bbb; border-radius: 8px; background: #fff; color: #111; padding: 7px 10px; font-weight: 700; cursor: pointer; }
+    .sport-filter { position: relative; margin-top: 8px; }
+    .sport-filter summary { list-style: none; border: 1px solid #5421a8; border-radius: 8px; padding: 9px 38px 9px 11px; background: #fff; color: #111; font-weight: 700; cursor: pointer; position: relative; }
+    .sport-filter summary::-webkit-details-marker { display: none; }
+    .sport-filter summary::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #5421a8; }
+    .sport-filter[open] summary::after { content: '▴'; }
+    .filter-panel { position: absolute; left: 0; right: 0; top: calc(100% + 5px); z-index: 20; max-height: min(58vh, 440px); overflow-y: auto; border: 1px solid #bbb; border-radius: 10px; background: #fff; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+    .filter-actions { display: flex; gap: 8px; margin-bottom: 8px; }
+    .filter-actions button { border: 1px solid #bbb; border-radius: 7px; background: #fff; padding: 7px 10px; font-weight: 700; cursor: pointer; }
+    .filter-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 12px; }
+    .filter-option { display: flex; gap: 8px; align-items: flex-start; padding: 7px 5px; border-radius: 7px; cursor: pointer; line-height: 1.25; }
+    .filter-option:hover { background: #f4f0fb; }
+    .filter-option input { flex: 0 0 auto; width: 18px; height: 18px; margin: 0; accent-color: #5421a8; }
+    .no-matches { margin: 24px 0; padding: 18px; border: 1px solid #ddd; border-radius: 10px; color: #666; text-align: center; }
+    .day { border-bottom: 1px solid #e5e5e5; padding: 16px 0; scroll-margin-top: 124px; }
+    .day-title { margin: 0 0 10px; font-size: 22px; font-weight: 700; }
+    .games { min-height: 58px; display: grid; gap: 8px; padding: 2px 0; }
+    .game {
+      display: grid;
+      grid-template-columns: 112px 1fr 126px 102px;
+      gap: 10px;
+      align-items: center;
+      background: #fff;
+      border: 2px solid #5421a8;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .game:focus-visible { outline: 3px solid #ef4aa8; outline-offset: 2px; }
+    .game.record { border-color: #dc3545; }
+    .game.watched { background: #f2f2f2; border-color: #aaa; color: #777; }
+    .time { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .teams { font-weight: 700; line-height: 1.25; }
+    .stage { color: #666; font-size: 13px; margin-top: 2px; }
+    .side { justify-self: end; text-align: right; }
+    .pill { display: inline-block; white-space: nowrap; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 700; background: #5421a8; color: #fff; }
+    .medal .pill { background: #ef4aa8; }
+    .record .pill { background: #dc3545; }
+    .done { display: none; margin-top: 6px; font-size: 12px; font-weight: 700; color: #777; }
+    .watched .stage { color: #777; }
+    .watched .pill { background: #777; }
+    .watched .done { display: block; }
+    .move-buttons { display: grid; grid-template-columns: repeat(3, 30px); gap: 4px; justify-self: end; }
+    .move-buttons button { width: 30px; height: 32px; border: 1px solid #bbb; border-radius: 8px; background: #fff; color: #111; font-size: 18px; font-weight: 700; cursor: pointer; }
+    .move-buttons button:disabled { opacity: .25; cursor: not-allowed; }
+    .move-buttons .done-btn { color: #166534; border-color: #8fc79a; }
+    .move-buttons .done-btn.active { background: #166534; border-color: #166534; color: #fff; }
+    .empty { color: #777; font-size: 13px; padding: 8px 0; }
+    footer { padding: 17px 0 5px; color: #666; font-size: 12px; line-height: 1.45; }
+    footer a { color: #5421a8; }
+
+    [hidden] { display: none !important; }
+    body.modal-open main { overflow: hidden; }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 12px;
+      background: rgba(0,0,0,.58);
+    }
+    .session-modal {
+      width: min(720px, 100%);
+      max-height: 88vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border-radius: 14px 14px 10px 10px;
+      box-shadow: 0 16px 50px rgba(0,0,0,.35);
+    }
+    .modal-header {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 16px 16px 11px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .modal-title-wrap { min-width: 0; }
+    .modal-title { margin: 0; font-size: 21px; line-height: 1.2; }
+    .modal-meta { margin-top: 5px; color: #666; font-size: 13px; line-height: 1.35; }
+    .modal-close {
+      flex: 0 0 auto;
+      width: 38px;
+      height: 38px;
+      border: 1px solid #bbb;
+      border-radius: 9px;
+      background: #fff;
+      color: #111;
+      font-size: 25px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .modal-body {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 14px 16px 18px;
+    }
+    .modal-note {
+      margin: 0 0 12px;
+      padding: 10px 11px;
+      border-radius: 8px;
+      background: #f4f0fb;
+      color: #3f2a66;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .modal-section-title { margin: 15px 0 8px; font-size: 16px; }
+    .athlete-panel {
+      display: grid;
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+    .athlete-event {
+      border: 1px solid #d8d8d8;
+      border-radius: 9px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .athlete-event-head {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+      padding: 9px 10px;
+      background: #f4f0fb;
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .athlete-event-time { flex: 0 0 auto; color: #5421a8; }
+    .athlete-rows { list-style: none; margin: 0; padding: 0; }
+    .athlete-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 9px;
+      padding: 8px 10px;
+      border-top: 1px solid #eee;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .athlete-name { font-weight: 700; }
+    .athlete-nation { color: #555; white-space: nowrap; }
+    .athlete-extra { display: block; margin-top: 2px; color: #777; font-size: 11px; font-weight: 400; }
+    .athlete-empty {
+      margin: 0 0 12px;
+      padding: 10px 11px;
+      border: 1px dashed #bbb;
+      border-radius: 9px;
+      color: #666;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .event-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+    .event-item {
+      display: grid;
+      grid-template-columns: 104px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 9px;
+      background: #fff;
+    }
+    .round-label {
+      display: inline-block;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: #5421a8;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .event-name { font-size: 14px; line-height: 1.35; font-weight: 700; }
+    .modal-empty { margin: 0; color: #666; line-height: 1.45; }
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 11px 16px 16px;
+      border-top: 1px solid #e5e5e5;
+      background: #fff;
+    }
+    .modal-actions button {
+      min-height: 42px;
+      border: 1px solid #aaa;
+      border-radius: 9px;
+      background: #fff;
+      color: #111;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .modal-actions button.active {
+      border-color: #5421a8;
+      background: #5421a8;
+      color: #fff;
+    }
+
+    @media (max-width: 720px) {
+      main { padding: 8px 10px 28px; }
+      h1 { font-size: 18px; }
+      .filter-options { grid-template-columns: 1fr; }
+      .day-title { font-size: 20px; }
+      .game { grid-template-columns: 102px 1fr 98px; gap: 8px; }
+      .side { grid-column: 1 / 3; justify-self: start; text-align: left; }
+      .move-buttons { grid-column: 3; grid-row: 2; }
+    }
+    @media (max-width: 430px) {
+      .game { grid-template-columns: 94px 1fr 94px; padding: 9px; }
+      .time { font-size: 13px; }
+      .teams { font-size: 14px; }
+      .stage { font-size: 12px; }
+      .session-modal { max-height: 91vh; }
+      .modal-backdrop { padding: 0; }
+      .session-modal { border-radius: 14px 14px 0 0; }
+      .event-item { grid-template-columns: 92px 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main id="schedule">
+    <div class="topbar">
+      <div class="topbar-main">
+        <div class="heading">
+          <h1>Glasgow 2026 Commonwealth Games</h1>
+        </div>
+        <button class="reset-btn" id="resetBtn" type="button">Reset</button>
+      </div>
+      <details class="sport-filter" id="sportFilter">
+        <summary id="filterSummary">Interested in: All sports</summary>
+        <div class="filter-panel">
+          <div class="filter-actions">
+            <button type="button" id="selectAllSports">Select all</button>
+            <button type="button" id="clearAllSports">Clear all</button>
+          </div>
+          <div class="filter-options" id="filterOptions"></div>
+        </div>
+      </details>
+    </div>
+    <div id="days"></div>
+    <footer>
+      Times are Glasgow local time (BST). Schedule published 13 July 2026 and subject to change. Reset restores the original schedule and filters.
+      <a href="https://www.glasgow2026.com/schedule/overview" target="_blank" rel="noopener">Official schedule</a>.
+    </footer>
+  </main>
+
+  <div class="modal-backdrop" id="sessionModal" hidden>
+    <section class="session-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <h2 class="modal-title" id="modalTitle"></h2>
+          <div class="modal-meta" id="modalMeta"></div>
+        </div>
+        <button class="modal-close" id="modalClose" type="button" aria-label="Close details">×</button>
+      </header>
+      <div class="modal-body">
+        <h3 class="modal-section-title">Athletes and nations</h3>
+        <div class="athlete-panel" id="modalAthletes"></div>
+        <p class="athlete-empty" id="athleteEmpty">No athlete data loaded for this session yet.</p>
+        <h3 class="modal-section-title">Session programme</h3>
+        <p class="modal-note" id="modalNote"></p>
+        <ul class="event-list" id="modalEvents"></ul>
+        <p class="modal-empty" id="modalEmpty" hidden></p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="modalDoneBtn">Mark done</button>
+        <button type="button" id="modalRecordBtn">Set on demand</button>
+      </div>
+    </section>
+  </div>
+  <script>
+    const fixtures = [{"id":36,"date":"2026-07-23","time":"09:30-16:25","stage":"Session 1 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":1,"date":"2026-07-23","time":"TBC","stage":"The Hydro","teams":"Opening Ceremony","medal":true,"kind":"CEREMONY"},{"id":37,"date":"2026-07-24","time":"08:30-14:15","stage":"Session 2 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":3,"date":"2026-07-24","time":"10:00-13:30","stage":"Session 1 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":16,"date":"2026-07-24","time":"10:00-16:00","stage":"Session 1 · Glasgow International Arena","teams":"Artistic Gymnastics","medal":false,"kind":"SPORT"},{"id":102,"date":"2026-07-24","time":"10:30-13:00","stage":"Session 1 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":false,"kind":"SPORT"},{"id":56,"date":"2026-07-24","time":"11:00-14:30","stage":"Session 1 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":100,"date":"2026-07-24","time":"13:00-16:30","stage":"Session 1 · SEC Armadillo","teams":"Para Powerlifting","medal":true,"kind":"SPORT"},{"id":4,"date":"2026-07-24","time":"14:30-18:00","stage":"Session 2 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":38,"date":"2026-07-24","time":"15:00-22:15","stage":"Session 3 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":17,"date":"2026-07-24","time":"17:30-21:15","stage":"Session 2 · Glasgow International Arena","teams":"Artistic Gymnastics","medal":true,"kind":"SPORT"},{"id":101,"date":"2026-07-24","time":"18:00-21:30","stage":"Session 2 · SEC Armadillo","teams":"Para Powerlifting","medal":true,"kind":"SPORT"},{"id":57,"date":"2026-07-24","time":"18:00-21:45","stage":"Session 2 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":5,"date":"2026-07-24","time":"19:00-21:30","stage":"Session 3 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":103,"date":"2026-07-24","time":"19:00-22:00","stage":"Session 2 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":true,"kind":"SPORT"},{"id":39,"date":"2026-07-25","time":"08:30-14:15","stage":"Session 4 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":79,"date":"2026-07-25","time":"09:00-12:30","stage":"Session 1 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":6,"date":"2026-07-25","time":"10:00-13:30","stage":"Session 4 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":18,"date":"2026-07-25","time":"10:00-14:00","stage":"Session 3 · Glasgow International Arena","teams":"Artistic Gymnastics","medal":false,"kind":"SPORT"},{"id":104,"date":"2026-07-25","time":"10:30-13:00","stage":"Session 3 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":false,"kind":"SPORT"},{"id":58,"date":"2026-07-25","time":"11:00-14:00","stage":"Session 3 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":80,"date":"2026-07-25","time":"14:00-17:30","stage":"Session 2 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":7,"date":"2026-07-25","time":"14:30-18:00","stage":"Session 5 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":40,"date":"2026-07-25","time":"15:00-22:10","stage":"Session 5 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":19,"date":"2026-07-25","time":"15:45-20:45","stage":"Session 4 · Glasgow International Arena","teams":"Artistic Gymnastics","medal":true,"kind":"SPORT"},{"id":59,"date":"2026-07-25","time":"18:00-21:15","stage":"Session 4 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":8,"date":"2026-07-25","time":"19:00-21:30","stage":"Session 6 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":105,"date":"2026-07-25","time":"19:00-22:15","stage":"Session 4 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":true,"kind":"SPORT"},{"id":81,"date":"2026-07-25","time":"19:00-22:30","stage":"Session 3 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":41,"date":"2026-07-26","time":"08:30-14:00","stage":"Session 6 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":82,"date":"2026-07-26","time":"09:00-12:30","stage":"Session 4 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":122,"date":"2026-07-26","time":"09:30-12:00","stage":"Session 1 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":106,"date":"2026-07-26","time":"10:30-12:45","stage":"Session 5 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":false,"kind":"SPORT"},{"id":60,"date":"2026-07-26","time":"11:00-15:00","stage":"Session 5 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":9,"date":"2026-07-26","time":"11:30-15:45","stage":"Session 7 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":20,"date":"2026-07-26","time":"12:00-15:00","stage":"Session 5 · Glasgow International Arena","teams":"Artistic Gymnastics","medal":true,"kind":"SPORT"},{"id":123,"date":"2026-07-26","time":"14:00-16:30","stage":"Session 2 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":83,"date":"2026-07-26","time":"14:00-17:30","stage":"Session 5 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":42,"date":"2026-07-26","time":"14:45-21:55","stage":"Session 7 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":10,"date":"2026-07-26","time":"17:00-21:15","stage":"Session 8 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":21,"date":"2026-07-26","time":"18:00-21:00","stage":"Session 6 · Glasgow International Arena","teams":"Artistic Gymnastics","medal":true,"kind":"SPORT"},{"id":61,"date":"2026-07-26","time":"18:00-21:45","stage":"Session 6 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":124,"date":"2026-07-26","time":"18:30-21:00","stage":"Session 3 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":107,"date":"2026-07-26","time":"19:00-22:15","stage":"Session 6 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":true,"kind":"SPORT"},{"id":84,"date":"2026-07-26","time":"19:00-22:30","stage":"Session 6 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":43,"date":"2026-07-27","time":"08:30-14:00","stage":"Session 8 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":125,"date":"2026-07-27","time":"09:00-11:30","stage":"Session 4 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":24,"date":"2026-07-27","time":"10:00-13:30","stage":"Session 1 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":false,"kind":"SPORT"},{"id":108,"date":"2026-07-27","time":"10:30-12:15","stage":"Session 7 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":false,"kind":"SPORT"},{"id":62,"date":"2026-07-27","time":"11:00-14:45","stage":"Session 7 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":11,"date":"2026-07-27","time":"11:30-15:45","stage":"Session 9 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":22,"date":"2026-07-27","time":"13:00-17:30","stage":"Session 7 · Glasgow International Arena","teams":"Artistic Gymnastics","medal":true,"kind":"SPORT"},{"id":126,"date":"2026-07-27","time":"13:00-17:45","stage":"Session 5 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":85,"date":"2026-07-27","time":"14:00-17:30","stage":"Session 7 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":44,"date":"2026-07-27","time":"14:45-21:55","stage":"Session 9 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":12,"date":"2026-07-27","time":"17:00-21:15","stage":"Session 10 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":63,"date":"2026-07-27","time":"18:00-21:30","stage":"Session 8 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":25,"date":"2026-07-27","time":"18:30-22:00","stage":"Session 2 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":true,"kind":"SPORT"},{"id":109,"date":"2026-07-27","time":"19:00-22:00","stage":"Session 8 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":true,"kind":"SPORT"},{"id":86,"date":"2026-07-27","time":"19:00-22:30","stage":"Session 8 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":127,"date":"2026-07-27","time":"20:00-22:30","stage":"Session 6 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":45,"date":"2026-07-28","time":"08:30-13:30","stage":"Session 10 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":true,"kind":"SPORT"},{"id":128,"date":"2026-07-28","time":"09:30-12:00","stage":"Session 7 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":26,"date":"2026-07-28","time":"10:00-12:30","stage":"Session 3 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":false,"kind":"SPORT"},{"id":110,"date":"2026-07-28","time":"10:30-13:15","stage":"Session 9 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":false,"kind":"SPORT"},{"id":64,"date":"2026-07-28","time":"12:00-15:15","stage":"Session 9 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":23,"date":"2026-07-28","time":"13:00-17:30","stage":"Session 8 · Glasgow International Arena","teams":"Artistic Gymnastics","medal":true,"kind":"SPORT"},{"id":129,"date":"2026-07-28","time":"14:00-16:30","stage":"Session 8 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":87,"date":"2026-07-28","time":"14:00-17:30","stage":"Session 9 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":46,"date":"2026-07-28","time":"15:00-21:55","stage":"Session 11 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":13,"date":"2026-07-28","time":"17:30-21:30","stage":"Session 11 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":65,"date":"2026-07-28","time":"18:00-21:15","stage":"Session 10 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":130,"date":"2026-07-28","time":"18:30-21:00","stage":"Session 9 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":27,"date":"2026-07-28","time":"18:30-22:00","stage":"Session 4 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":true,"kind":"SPORT"},{"id":111,"date":"2026-07-28","time":"19:00-22:15","stage":"Session 10 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":true,"kind":"SPORT"},{"id":88,"date":"2026-07-28","time":"19:00-22:30","stage":"Session 10 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":47,"date":"2026-07-29","time":"08:30-14:00","stage":"Session 12 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":131,"date":"2026-07-29","time":"09:30-12:00","stage":"Session 10 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":28,"date":"2026-07-29","time":"10:00-13:00","stage":"Session 5 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":false,"kind":"SPORT"},{"id":112,"date":"2026-07-29","time":"10:30-12:15","stage":"Session 11 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":false,"kind":"SPORT"},{"id":14,"date":"2026-07-29","time":"11:30-15:30","stage":"Session 12 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":false,"kind":"SPORT"},{"id":66,"date":"2026-07-29","time":"12:00-15:30","stage":"Session 11 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":132,"date":"2026-07-29","time":"14:00-16:30","stage":"Session 11 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":89,"date":"2026-07-29","time":"14:00-17:30","stage":"Session 11 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":48,"date":"2026-07-29","time":"15:00-21:55","stage":"Session 13 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":15,"date":"2026-07-29","time":"16:30-21:30","stage":"Session 13 · SEC Centre Hall 4","teams":"3x3 Basketball & 3x3 Wheelchair Basketball","medal":true,"kind":"SPORT"},{"id":67,"date":"2026-07-29","time":"18:00-21:30","stage":"Session 12 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":133,"date":"2026-07-29","time":"18:30-21:00","stage":"Session 12 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":29,"date":"2026-07-29","time":"18:30-22:00","stage":"Session 6 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":true,"kind":"SPORT"},{"id":113,"date":"2026-07-29","time":"19:00-22:00","stage":"Session 12 · Tollcross International Swimming Centre","teams":"Swimming & Para Swimming","medal":true,"kind":"SPORT"},{"id":90,"date":"2026-07-29","time":"19:00-22:30","stage":"Session 12 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":49,"date":"2026-07-30","time":"08:30-14:00","stage":"Session 14 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":91,"date":"2026-07-30","time":"09:00-12:30","stage":"Session 13 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":134,"date":"2026-07-30","time":"09:30-12:00","stage":"Session 13 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":114,"date":"2026-07-30","time":"10:00-13:00","stage":"Session 1 · Sir Chris Hoy Velodrome","teams":"Track Cycling & Para Track Cycling","medal":false,"kind":"SPORT"},{"id":30,"date":"2026-07-30","time":"10:00-13:30","stage":"Session 7 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":false,"kind":"SPORT"},{"id":135,"date":"2026-07-30","time":"14:00-16:30","stage":"Session 14 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":92,"date":"2026-07-30","time":"14:00-17:30","stage":"Session 14 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":50,"date":"2026-07-30","time":"15:00-21:55","stage":"Session 15 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":115,"date":"2026-07-30","time":"16:00-19:00","stage":"Session 2 · Sir Chris Hoy Velodrome","teams":"Track Cycling & Para Track Cycling","medal":true,"kind":"SPORT"},{"id":136,"date":"2026-07-30","time":"18:30-21:00","stage":"Session 15 · SEC Armadillo","teams":"Weightlifting","medal":true,"kind":"SPORT"},{"id":31,"date":"2026-07-30","time":"18:30-22:00","stage":"Session 8 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":true,"kind":"SPORT"},{"id":93,"date":"2026-07-30","time":"19:00-22:30","stage":"Session 15 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":51,"date":"2026-07-31","time":"08:30-14:00","stage":"Session 16 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":94,"date":"2026-07-31","time":"09:00-12:30","stage":"Session 16 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":32,"date":"2026-07-31","time":"10:00-13:45","stage":"Session 9 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":false,"kind":"SPORT"},{"id":116,"date":"2026-07-31","time":"10:00-15:00","stage":"Session 3 · Sir Chris Hoy Velodrome","teams":"Track Cycling & Para Track Cycling","medal":false,"kind":"SPORT"},{"id":68,"date":"2026-07-31","time":"10:30-12:30","stage":"Session 13 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":73,"date":"2026-07-31","time":"11:00-14:00","stage":"Session 1 · SEC Centre Hall 4","teams":"Judo","medal":false,"kind":"SPORT"},{"id":95,"date":"2026-07-31","time":"14:00-17:30","stage":"Session 17 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":69,"date":"2026-07-31","time":"14:30-17:00","stage":"Session 14 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":52,"date":"2026-07-31","time":"15:00-21:55","stage":"Session 17 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":74,"date":"2026-07-31","time":"16:00-18:45","stage":"Session 2 · SEC Centre Hall 4","teams":"Judo","medal":true,"kind":"SPORT"},{"id":117,"date":"2026-07-31","time":"16:00-20:15","stage":"Session 4 · Sir Chris Hoy Velodrome","teams":"Track Cycling & Para Track Cycling","medal":true,"kind":"SPORT"},{"id":33,"date":"2026-07-31","time":"18:30-22:15","stage":"Session 10 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":true,"kind":"SPORT"},{"id":70,"date":"2026-07-31","time":"19:00-21:30","stage":"Session 15 · SEC Centre Hall 5","teams":"Boxing","medal":false,"kind":"SPORT"},{"id":53,"date":"2026-08-01","time":"08:30-14:00","stage":"Session 18 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":96,"date":"2026-08-01","time":"09:00-11:00","stage":"Session 18 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":118,"date":"2026-08-01","time":"10:00-13:30","stage":"Session 5 · Sir Chris Hoy Velodrome","teams":"Track Cycling & Para Track Cycling","medal":false,"kind":"SPORT"},{"id":34,"date":"2026-08-01","time":"10:00-13:45","stage":"Session 11 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":true,"kind":"SPORT"},{"id":75,"date":"2026-08-01","time":"11:00-14:00","stage":"Session 3 · SEC Centre Hall 4","teams":"Judo","medal":false,"kind":"SPORT"},{"id":71,"date":"2026-08-01","time":"11:00-14:30","stage":"Session 16 · SEC Centre Hall 5","teams":"Boxing","medal":true,"kind":"SPORT"},{"id":97,"date":"2026-08-01","time":"13:00-15:00","stage":"Session 19 · The Hydro","teams":"Netball","medal":false,"kind":"SPORT"},{"id":119,"date":"2026-08-01","time":"15:00-19:00","stage":"Session 6 · Sir Chris Hoy Velodrome","teams":"Track Cycling & Para Track Cycling","medal":true,"kind":"SPORT"},{"id":54,"date":"2026-08-01","time":"15:00-21:55","stage":"Session 19 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":false,"kind":"SPORT"},{"id":76,"date":"2026-08-01","time":"16:00-18:45","stage":"Session 4 · SEC Centre Hall 4","teams":"Judo","medal":true,"kind":"SPORT"},{"id":72,"date":"2026-08-01","time":"16:30-20:00","stage":"Session 17 · SEC Centre Hall 5","teams":"Boxing","medal":true,"kind":"SPORT"},{"id":35,"date":"2026-08-01","time":"18:30-22:30","stage":"Session 12 · EDF Scotstoun Stadium","teams":"Athletics & Para Athletics","medal":true,"kind":"SPORT"},{"id":98,"date":"2026-08-02","time":"09:00-11:00","stage":"Session 20 · The Hydro","teams":"Netball","medal":true,"kind":"SPORT"},{"id":120,"date":"2026-08-02","time":"09:00-13:00","stage":"Session 7 · Sir Chris Hoy Velodrome","teams":"Track Cycling & Para Track Cycling","medal":true,"kind":"SPORT"},{"id":55,"date":"2026-08-02","time":"09:00-15:15","stage":"Session 20 · SEC Centre Hall 3","teams":"Bowls & Para Bowls","medal":true,"kind":"SPORT"},{"id":77,"date":"2026-08-02","time":"10:00-13:00","stage":"Session 5 · SEC Centre Hall 4","teams":"Judo","medal":false,"kind":"SPORT"},{"id":99,"date":"2026-08-02","time":"13:00-15:00","stage":"Session 21 · The Hydro","teams":"Netball","medal":true,"kind":"SPORT"},{"id":78,"date":"2026-08-02","time":"15:00-17:45","stage":"Session 6 · SEC Centre Hall 4","teams":"Judo","medal":true,"kind":"SPORT"},{"id":121,"date":"2026-08-02","time":"15:00-17:45","stage":"Session 8 · Sir Chris Hoy Velodrome","teams":"Track Cycling & Para Track Cycling","medal":true,"kind":"SPORT"},{"id":2,"date":"2026-08-02","time":"TBC","stage":"Venue TBC","teams":"Closing Ceremony","medal":true,"kind":"CEREMONY"}];
+    const sessionDetails = {"36":[{"round":"P","gender":"M","event":"Men's Singles - Sectional Play"},{"round":"P","gender":"W","event":"Women's Pairs - Sectional Play"}],"1":[],"37":[{"round":"P","gender":"M","event":"Men’s Singles - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Pairs - Sectional Play"},{"round":"P","gender":"X","event":"Para Mixed Pairs B2-B3 - Sectional Play"}],"3":[{"round":"P","gender":"M","event":"Men's 3x3 Basketball - New Zealand v Australia"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Australia v Kenya"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Nigeria v Cayman Islands"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Fiji v Cayman Islands"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Canada v Kenya"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - England v Australia"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Scotland v Guyana"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Uganda v Jamaica"}],"16":[{"round":"P","gender":"M","event":"Men's Team Final & Individual Qualification - Sub. 1"},{"round":"P","gender":"M","event":"Men's Team Final & Individual Qualification - Sub. 2"}],"102":[{"round":"P","gender":"W","event":"Women's 400m Freestyle - Heats"},{"round":"P","gender":"M","event":"Men's 200m Individual Medley - Heats"},{"round":"P","gender":"W","event":"Women's S13 100m Freestyle - Heats"},{"round":"P","gender":"M","event":"Men's S13 100m Freestyle - Heats"},{"round":"P","gender":"W","event":"Women's 200m Backstroke - Heats"},{"round":"P","gender":"M","event":"Men's 50m Backstroke - Heats"},{"round":"P","gender":"W","event":"Women's 50m Butterfly - Heats"},{"round":"P","gender":"M","event":"Men's 100m Breaststroke - Heats"},{"round":"P","gender":"W","event":"Women's SM10 200m Individual Medley - Heats"},{"round":"P","gender":"M","event":"Men's S10 100m Butterfly - Heats"},{"round":"P","gender":"W","event":"Women's 4 x 100m Freestyle Relay - Heats"},{"round":"P","gender":"M","event":"Men's 4 x 100m Freestyle Relay - Heats"}],"56":[{"round":"P","gender":"W","event":"Women's Bantamweight 54kg - Round of 32"},{"round":"P","gender":"M","event":"Men's Bantamweight 55kg - Round of 32"},{"round":"P","gender":"M","event":"Men's Welterweight 65kg - Round of 32"},{"round":"P","gender":"M","event":"Men's Light-Middleweight 70kg - Round of 32"}],"100":[{"round":"F","gender":"M","event":"Men's Lightweight Final"},{"round":"MC","gender":"M","event":"Men's Lightweight Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Lightweight Final"},{"round":"MC","gender":"W","event":"Women's Lightweight Medal Ceremony"}],"4":[{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Australia v Jamaica"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - New Zealand v Guyana"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Uganda v Cayman Islands"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Scotland v Cayman Islands"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball - Canada v South Africa"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - England v Australia"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Kenya v Fiji"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Australia v Nigeria"}],"38":[{"round":"P","gender":"M","event":"Men’s Singles - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Pairs - Sectional Play"},{"round":"P","gender":"X","event":"Para Mixed Pairs B2-B3 - Sectional Play"}],"17":[{"round":"F","gender":"M","event":"Men's Team Final & Individual Qualification - Sub. 3"},{"round":"MC","gender":"M","event":"Men's Team Medal Ceremony"}],"101":[{"round":"F","gender":"W","event":"Women's Heavyweight Final"},{"round":"MC","gender":"W","event":"Women's Heavyweight Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Heavyweight Final"},{"round":"MC","gender":"M","event":"Men's Heavyweight Medal Ceremony"}],"57":[{"round":"P","gender":"M","event":"Men's Bantamweight 55kg - Round of 32"},{"round":"P","gender":"M","event":"Men's Welterweight 65kg - Round of 32"},{"round":"P","gender":"M","event":"Men's Light-Middleweight 70kg - Round of 32"},{"round":"P","gender":"W","event":"Women's Lightweight 60kg - Round of 16"}],"5":[{"round":"P","gender":"M","event":"Men's 3x3 Basketball - New Zealand v Nigeria"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Cayman Islands v Jamaica"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Cayman Islands v Guyana"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Uganda v Kenya"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Scotland v Australia"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Australia v Fiji"}],"103":[{"round":"F","gender":"W","event":"Women's 400m Freestyle Final"},{"round":"F","gender":"M","event":"Men's 200m Individual Medley Final"},{"round":"F","gender":"W","event":"Women's S13 100m Freestyle Final"},{"round":"F","gender":"M","event":"Men's S13 100m Freestyle Final"},{"round":"MC","gender":"W","event":"Women's 400m Freestyle Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 200m Individual Medley Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 200m Backstroke Final"},{"round":"SF","gender":"M","event":"Men's 50m Backstroke Semi-Final"},{"round":"SF","gender":"W","event":"Women's 50m Butterfly Semi-Final"},{"round":"MC","gender":"W","event":"Women's S13 100m Freestyle Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's S13 100m Freestyle Medal Ceremony"},{"round":"SF","gender":"M","event":"Men's 100m Breaststroke Semi-Final"},{"round":"F","gender":"W","event":"Women's SM10 200m Individual Medley Final"},{"round":"F","gender":"M","event":"Men's S10 100m Butterfly Final"},{"round":"MC","gender":"W","event":"Women's 200m Backstroke Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's SM10 200m Individual Medley Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 4 x 100m Freestyle Relay Final"},{"round":"F","gender":"M","event":"Men's 4 x 100m Freestyle Relay Final"},{"round":"MC","gender":"M","event":"Men's S10 100m Butterfly Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 4 x 100m Freestyle Relay Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 4 x 100m Freestyle Relay Medal Ceremony"}],"39":[{"round":"P","gender":"M","event":"Men’s Singles - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Pairs - Sectional Play"},{"round":"P","gender":"X","event":"Para Mixed Pairs B2-B3 - Sectional Play"}],"79":[{"round":"P","gender":"W","event":"New Zealand v Scotland"},{"round":"P","gender":"W","event":"Australia v Tonga"}],"6":[{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Singapore v Kenya"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Singapore v England"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Malaysia v Fiji"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Scotland v Tonga"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Scotland v South Africa"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball 3x3 - Wales v India"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - England v Jamaica"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - New Zealand v Papua New Guinea"}],"18":[{"round":"P","gender":"W","event":"Women's Team Final & Individual Qualification - Sub. 1"},{"round":"P","gender":"W","event":"Women's Team Final & Individual Qualification - Sub. 2"}],"104":[{"round":"P","gender":"W","event":"Women's 200m Freestyle - Heats"},{"round":"P","gender":"M","event":"Men's 50m Freestyle - Heats"},{"round":"P","gender":"W","event":"Women's 100m Backstroke - Heats"},{"round":"P","gender":"M","event":"Men's 100m Butterfly - Heats"},{"round":"P","gender":"W","event":"Women's 100m Breaststroke - Heats"},{"round":"P","gender":"M","event":"Men's 400m Freestyle - Heats"},{"round":"P","gender":"W","event":"Women's S14 200m Freestyle - Heats"},{"round":"P","gender":"M","event":"Men's S14 200m Freestyle - Heats"},{"round":"P","gender":"X","event":"Mixed 4 x 100m Freestyle Relay - Heats"}],"58":[{"round":"P","gender":"M","event":"Men's Lightweight 60kg - Round of 32"},{"round":"P","gender":"M","event":"Men's Light-Heavyweight 80kg - Round of 32"},{"round":"P","gender":"W","event":"Women's Welterweight 65kg - Round of 16"},{"round":"P","gender":"W","event":"Women's Light-Middleweight 70kg - Round of 16"}],"80":[{"round":"P","gender":"W","event":"England v Northern Ireland"},{"round":"P","gender":"W","event":"Wales v Uganda"}],"7":[{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Singapore v Papua New Guinea"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Singapore v Jamaica"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - New Zealand v Tonga"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - England v Fiji"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball - Scotland v Nigeria"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Wales v Malaysia"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - England v Scotland"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Kenya v Malaysia"}],"40":[{"round":"P","gender":"M","event":"Men’s Singles - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Pairs - Sectional Play"},{"round":"P","gender":"X","event":"Para Mixed Pairs B2-B3 - Sectional Play"}],"19":[{"round":"P","gender":"W","event":"Women's Team Final & Individual Qualification - Sub. 3"},{"round":"F","gender":"W","event":"Women's Team Final & Individual Qualification - Sub. 4"},{"round":"MC","gender":"W","event":"Women's Team Medal Ceremony"}],"59":[{"round":"P","gender":"M","event":"Men's Lightweight 60kg - Round of 32"},{"round":"P","gender":"M","event":"Men's Light-Heavyweight 80kg - Round of 32"},{"round":"P","gender":"W","event":"Women's Welterweight 65kg - Round of 16"}],"8":[{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Singapore v Malaysia"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Singapore v Scotland"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - England v Kenya"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Tonga v Papua New Guinea"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Fiji v Jamaica"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - New Zealand v England"}],"105":[{"round":"F","gender":"M","event":"Men's 400m Freestyle Final"},{"round":"SF","gender":"W","event":"Women's 100m Backstroke Semi-Final"},{"round":"SF","gender":"M","event":"Men's 50m Freestyle Semi-Final"},{"round":"MC","gender":"M","event":"Men's 400m Freestyle Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 200m Freestyle Final"},{"round":"F","gender":"M","event":"Men's 50m Backstroke Final"},{"round":"F","gender":"W","event":"Women's 50m Butterfly Final"},{"round":"MC","gender":"W","event":"Women's 200m Freestyle Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 50m Backstroke Medal Ceremony"},{"round":"SF","gender":"M","event":"Men's 100m Butterfly Semi-Final"},{"round":"F","gender":"W","event":"Women's S14 200m Freestyle Final"},{"round":"F","gender":"M","event":"Men's S14 200m Freestyle -Final"},{"round":"MC","gender":"W","event":"Women's 50m Butterfly Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's S14 200m Freestyle Medal Ceremony"},{"round":"SF","gender":"W","event":"Women's 100m Breaststroke Semi-Final"},{"round":"F","gender":"M","event":"Men's 100m Breaststroke Final"},{"round":"F","gender":"X","event":"Mixed 4 x 100m Freestyle Relay Final"},{"round":"MC","gender":"M","event":"Men's S14 200m Freestyle Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 100m Breaststroke Medal Ceremony"},{"round":"MC","gender":"X","event":"Mixed 4 x 100m Freestyle Relay Medal Ceremony"}],"81":[{"round":"P","gender":"W","event":"Jamaica v Trinidad and Tobago"},{"round":"P","gender":"W","event":"South Africa v Malawi"}],"41":[{"round":"P","gender":"M","event":"Men’s Singles - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Pairs - Sectional Play"}],"82":[{"round":"P","gender":"W","event":"Wales v Scotland"},{"round":"P","gender":"W","event":"Australia v England"}],"122":[{"round":"F","gender":"M","event":"Men's 60kg Final"},{"round":"MC","gender":"M","event":"Men's 60kg Medal Ceremony"}],"106":[{"round":"P","gender":"W","event":"Women's 100m Freestyle - Heats"},{"round":"P","gender":"M","event":"Men's 50m Breaststroke - Heats"},{"round":"TF","gender":"W","event":"Women's 1500m Freestyle (Slower Heats)"},{"round":"P","gender":"M","event":"Men's 200m Backstroke - Heats"},{"round":"P","gender":"W","event":"Women's 100m Butterfly - Heats"},{"round":"P","gender":"M","event":"Men's S9 100m Backstroke - Heats"},{"round":"P","gender":"W","event":"Women's S9 100m Backstroke - Heats"},{"round":"P","gender":"M","event":"Men's 4 x 200m Freestyle Relay - Heats"}],"60":[{"round":"P","gender":"W","event":"Women's Bantamweight 54kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Bantamweight 55kg - Round of 16"},{"round":"P","gender":"W","event":"Women's Featherweight 57kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Welterweight 65kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Heavyweight 90kg - Round of 16"}],"9":[{"round":"P","gender":"M","event":"Men's 3x3 Basketball - New Zealand v Cayman Islands"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Australia v Cayman Islands"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Australia v Kenya"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball - England v Canada"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Scotland v Nigeria"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Uganda v Fiji"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - England v Canada"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball - Australia v South Africa"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Australia v Guyana"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Kenya v Jamaica"}],"20":[{"round":"F","gender":"M","event":"Men's Individual All-Around Final"},{"round":"MC","gender":"M","event":"Men's Individual All-Around Medal Ceremony"}],"123":[{"round":"F","gender":"W","event":"Women's 48kg Final"},{"round":"MC","gender":"W","event":"Women's 48kg Medal Ceremony"}],"83":[{"round":"P","gender":"W","event":"Malawi v Northern Ireland"},{"round":"P","gender":"W","event":"South Africa v Tonga"}],"42":[{"round":"P","gender":"M","event":"Men’s Singles - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Pairs - Sectional Play"},{"round":"P","gender":"X","event":"Para Mixed Pairs B2-B3 - Sectional Play"}],"10":[{"round":"P","gender":"M","event":"Men's 3x3 Basketball - New Zealand v Sotland"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Fiji v Jamaica"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - South Africa v Wales"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball - India v Scotland"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Nigeria v Guyana"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Kenya v Cayman Islands"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Malaysia v Scotland"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball - Nigeria v Wales"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Australia v Cayman Islands"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Australia v Uganda"}],"21":[{"round":"F","gender":"W","event":"Women's Individual All-Around Final"},{"round":"MC","gender":"W","event":"Women's Individual All-Around Medal Ceremony"}],"61":[{"round":"P","gender":"W","event":"Women's Bantamweight 54kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Bantamweight 55kg - Round of 16"},{"round":"P","gender":"W","event":"Women's Featherweight 57kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Welterweight 65kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Heavyweight 90kg - Round of 16"}],"124":[{"round":"F","gender":"M","event":"Men's 65kg Final"},{"round":"MC","gender":"M","event":"Men's 65kg Medal Ceremony"}],"107":[{"round":"F","gender":"W","event":"Women's S9 100m Backstroke Final"},{"round":"F","gender":"M","event":"Men's S9 100m Backstroke Final"},{"round":"F","gender":"W","event":"Women's 100m Breaststroke Final"},{"round":"F","gender":"M","event":"Men's 100m Butterfly Final"},{"round":"MC","gender":"W","event":"Women's S9 100m Backstroke Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's S9 100m Backstroke Medal Ceremony"},{"round":"SF","gender":"W","event":"Women's 100m Freestyle Semi-Final"},{"round":"SF","gender":"M","event":"Men's 50m Breaststroke Semi-Final"},{"round":"MC","gender":"W","event":"Women's 100m Breaststroke Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 100m Butterfly Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 100m Backstroke Final"},{"round":"F","gender":"M","event":"Men's 200m Backstroke Final"},{"round":"SF","gender":"W","event":"Women's 100m Butterfly Semi-Final"},{"round":"MC","gender":"W","event":"Women's 100m Backstroke Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 200m Backstroke Medal Ceremony"},{"round":"F","gender":"M","event":"Men's 50m Freestyle Final"},{"round":"TF","gender":"W","event":"Women's 1500m Freestyle - Fastest 8"},{"round":"F","gender":"M","event":"Men's 4 x 200m Freestyle Relay Final"},{"round":"MC","gender":"M","event":"Men's 50m Freestyle Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 1500m Freestyle Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 4 x 200m Freestyle Relay Medal Ceremony"}],"84":[{"round":"P","gender":"W","event":"Uganda v Trinidad and Tobago"},{"round":"P","gender":"W","event":"New Zealand v Jamaica"}],"43":[{"round":"P","gender":"M","event":"Men’s Singles - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Pairs - Sectional Play"}],"125":[{"round":"F","gender":"M","event":"Men's 71kg Final"},{"round":"MC","gender":"M","event":"Men's 71kg Medal Ceremony"}],"24":[{"round":"P","gender":"M","event":"Men's 400m Hurdles Round 1"},{"round":"P","gender":"M","event":"Men's Long Jump Qualifying Round - Group A"},{"round":"P","gender":"M","event":"Men's 100m Round 1"},{"round":"P","gender":"M","event":"Men's Long Jump Qualifying Round - Group B"},{"round":"P","gender":"M","event":"Men's 110m Hurdles Round 1"},{"round":"P","gender":"W","event":"Women's Hammer Throw Qualifying Round"},{"round":"P","gender":"W","event":"Women's 100m Round 1"},{"round":"P","gender":"W","event":"Women's T38 100m Round 1"}],"108":[{"round":"P","gender":"M","event":"Men's 200m Butterfly - Heats"},{"round":"P","gender":"W","event":"Women's 400m Individual Medley - Heats"},{"round":"P","gender":"W","event":"Women's 50m Backstroke - Heats"},{"round":"P","gender":"M","event":"Men's 100m Freestyle - Heats"},{"round":"P","gender":"W","event":"Women's 50m Breaststroke - Heats"},{"round":"TF","gender":"M","event":"Men's 800m Freestyle (Slower Heats)"},{"round":"P","gender":"W","event":"Women's SB8 100m Breaststroke - Heats"},{"round":"P","gender":"M","event":"Men's SB9 100m Breaststroke - Heats"}],"62":[{"round":"P","gender":"W","event":"Women's Flyweight 51kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Lightweight 60kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Light-Middleweight 70kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Light-Heavyweight 80kg - Round of 16"}],"11":[{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Singapore v Tonga"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Singapore v Fiji"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball - South Africa v England"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Australia v Canada"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - New Zealand v Scotland"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - England v Malaysia"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball - Australia v Canada"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Kenya v England"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - England v Papua New Guinea"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Kenya v Jamaica"}],"22":[{"round":"F","gender":"M","event":"Men's Floor Exercise Final"},{"round":"F","gender":"W","event":"Women's Vault Final"},{"round":"MC","gender":"M","event":"Men's Floor Exercise Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Vault Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Pommel Horse Final"},{"round":"F","gender":"W","event":"Women's Uneven Bars Final"},{"round":"F","gender":"M","event":"Men's Rings Final"},{"round":"MC","gender":"M","event":"Men's Pommel Horse Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Uneven Bars Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's Rings Medal Ceremony"}],"126":[{"round":"F","gender":"W","event":"Women's 53kg Final"},{"round":"MC","gender":"W","event":"Women's 53kg Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 58kg Final"},{"round":"MC","gender":"W","event":"Women's 58kg Medal Ceremony"}],"85":[{"round":"P","gender":"W","event":"England v Malawi"},{"round":"P","gender":"W","event":"Tonga v Northern Ireland"}],"44":[{"round":"P","gender":"M","event":"Men’s Singles - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Pairs - Sectional Play"},{"round":"SF","gender":"M","event":"Men’s Singles - Semi-Finals"},{"round":"SF","gender":"W","event":"Women’s Pairs - Semi-Finals"},{"round":"SF","gender":"X","event":"Para Mixed Pairs B2-B3 - Semi-Finals"}],"12":[{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Scotland v Papua New Guinea"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Singapore v England"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball - Wales v Scotland"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Malaysia v South Africa"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - England v Tonga"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Kenya v Fiji"},{"round":"P","gender":"W","event":"Women's 3x3 Wheelchair Basketball - India v Nigeria"},{"round":"P","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Wales v Scotland"},{"round":"P","gender":"W","event":"Women's 3x3 Basketball - Singapore v New Zealand"},{"round":"P","gender":"M","event":"Men's 3x3 Basketball - Malaysia v Jamaica"}],"63":[{"round":"P","gender":"W","event":"Women's Flyweight 51kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Lightweight 60kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Light-Middleweight 70kg - Round of 16"},{"round":"P","gender":"M","event":"Men's Light-Heavyweight 80kg - Round of 16"}],"25":[{"round":"F","gender":"W","event":"Women's Shot Put F57 Final"},{"round":"F","gender":"M","event":"Men's High Jump Final"},{"round":"P","gender":"W","event":"Women's 800m Round 1"},{"round":"F","gender":"W","event":"Women's T38 100m Final"},{"round":"F","gender":"M","event":"Men's Hammer Throw Final"},{"round":"F","gender":"W","event":"Women's 10,000m Final"},{"round":"MC","gender":"W","event":"Women's T38 100m Medal Ceremony"},{"round":"F","gender":"M","event":"Men's 3000m Steeplechase Final"},{"round":"F","gender":"M","event":"Men's 1500m T20 Final"},{"round":"MC","gender":"W","event":"Women's 10,000m Medal Ceremony"},{"round":"F","gender":"M","event":"Men's T38 100m Final"},{"round":"MC","gender":"W","event":"Women's Shot Put F57 Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 3000m Steeplechase Medal Ceremony"},{"round":"F","gender":"M","event":"Men's 110m Hurdles Final"},{"round":"MC","gender":"M","event":"Men's 1500m T20 Medal Ceremony"}],"109":[{"round":"F","gender":"W","event":"Women's 400m Individual Medley Final"},{"round":"SF","gender":"M","event":"Men's 100m Freestyle Semi-Final"},{"round":"F","gender":"W","event":"Women's 100m Freestyle Final"},{"round":"F","gender":"M","event":"Men's SB9 100m Breaststroke Final"},{"round":"MC","gender":"W","event":"Women's 400m Individual Medley Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 100m Freestyle Medal Ceremony"},{"round":"F","gender":"W","event":"Women's SB8 100m Breaststroke Final"},{"round":"F","gender":"W","event":"Women's 100m Butterfly Final"},{"round":"F","gender":"M","event":"Men's 50m Breaststroke Final"},{"round":"MC","gender":"M","event":"Men's SB9 100m Breaststroke Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's SB8 100m Breaststroke Medal Ceremony"},{"round":"SF","gender":"W","event":"Women's 50m Backstroke Semi-Final"},{"round":"TF","gender":"M","event":"Men's 800m Freestyle - Fastest 8"},{"round":"MC","gender":"W","event":"Women's 100m Butterfly Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 50m Breaststroke Medal Ceremony"},{"round":"SF","gender":"W","event":"Women's 50m Breaststroke Semi-Final"},{"round":"F","gender":"M","event":"Men's 200m Butterfly Final"},{"round":"F","gender":"W","event":"Women's 4 x 200m Freestyle Relay Final"},{"round":"MC","gender":"M","event":"Men's 800m Freestyle Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 200m Butterfly Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 4 x 200m Freestyle Relay Medal Ceremony"}],"86":[{"round":"P","gender":"W","event":"Jamaica v Uganda"},{"round":"P","gender":"W","event":"Scotland v Trinidad and Tobago"}],"127":[{"round":"F","gender":"M","event":"Men's 79kg Final"},{"round":"MC","gender":"M","event":"Men's 79kg Medal Ceremony"}],"45":[{"round":"F","gender":"X","event":"Para Mixed Pairs B2-B3 - Gold Medal Match"},{"round":"F","gender":"W","event":"Women's Pairs - Bronze Medal Match"},{"round":"F","gender":"X","event":"Para Mixed Pairs B2-B3 - Bronze Medal Match"},{"round":"F","gender":"M","event":"Men's Singles - Gold Medal Match"},{"round":"F","gender":"W","event":"Women's Pairs - Gold Medal Match"},{"round":"F","gender":"M","event":"Men's Singles - Bronze Medal Match"},{"round":"MC","gender":"All","event":"Medal Ceremonies"}],"128":[{"round":"F","gender":"M","event":"Men's 88kg Final"},{"round":"MC","gender":"M","event":"Men's 88kg Medal Ceremony"}],"26":[{"round":"F","gender":"W","event":"Women's Heptathlon 100m Hurdles"},{"round":"P","gender":"W","event":"Women's 400m Round 1"},{"round":"F","gender":"W","event":"Women's Heptathlon High Jump"},{"round":"P","gender":"M","event":"Men's 800m Round 1"},{"round":"P","gender":"M","event":"Men's 400m Round 1"}],"110":[{"round":"P","gender":"M","event":"Men's 400m Individual Medley - Heats"},{"round":"P","gender":"W","event":"Women's 200m Individual Medley - Heats"},{"round":"P","gender":"M","event":"Men's 50m Butterfly - Heats"},{"round":"P","gender":"W","event":"Women's 50m Freestyle - Heats"},{"round":"P","gender":"M","event":"Men's 200m Breaststroke - Heats"},{"round":"TF","gender":"W","event":"Women's 800m Freestyle (Slower Heats)"},{"round":"P","gender":"M","event":"Men's 100m Backstroke - Heats"},{"round":"P","gender":"W","event":"Women's S13 50m Freestyle - Heats"},{"round":"P","gender":"M","event":"Men's S13 50m Freestyle - Heats"},{"round":"P","gender":"X","event":"Mixed 4 x 100m Medley Relay - Heats"}],"64":[{"round":"QF","gender":"W","event":"Women's Bantamweight 54kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Bantamweight 55kg Quarter-Final"},{"round":"QF","gender":"W","event":"Women's Lightweight 60kg Quarter-Final"},{"round":"QF","gender":"W","event":"Women's Welterweight 65kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Welterweight 65kg Quarter-Final"},{"round":"QF","gender":"W","event":"Women's Middleweight 75kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Heavyweight 90kg Quarter-Final"}],"23":[{"round":"F","gender":"M","event":"Men's Vault Final"},{"round":"F","gender":"W","event":"Women's Balance Beam Final"},{"round":"MC","gender":"M","event":"Men's Vault Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Balance Beam Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Parallel Bars Final"},{"round":"F","gender":"W","event":"Women's Floor Exercise Final"},{"round":"F","gender":"M","event":"Men's Horizontal Bar Final"},{"round":"MC","gender":"M","event":"Men's Parallel Bars Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Floor Exercise Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's Horizontal Bar Medal Ceremony"}],"129":[{"round":"F","gender":"W","event":"Women's 63kg Final"},{"round":"MC","gender":"W","event":"Women's 63kg Medal Ceremony"}],"87":[{"round":"P","gender":"W","event":"South Africa v Northern Ireland"},{"round":"P","gender":"W","event":"Wales v Trinidad and Tobago"}],"46":[{"round":"P","gender":"M","event":"Men's Pairs - Sectional Play"},{"round":"P","gender":"W","event":"Women's Singles - Sectional Play"},{"round":"P","gender":"M","event":"Para Men's Pairs B6-B8 - Sectional Play"},{"round":"P","gender":"W","event":"Para Women's Pairs B6-B8 - Sectional Play"}],"13":[{"round":"Q-SF","gender":"M","event":"Men's 3x3 Basketball Semi-Final Qualifier"},{"round":"Q-SF","gender":"W","event":"Women's 3x3 Basketball Semi-Final Qualifier"},{"round":"Q-SF","gender":"M","event":"Men's 3x3 Wheelchair Basketball Semi-Final Qualifier"},{"round":"Q-SF","gender":"W","event":"Women's 3x3 Wheelchair Basketball Semi-Final Qualifier"},{"round":"Q-SF","gender":"M","event":"Men's 3x3 Basketball Semi-Final Qualifier"},{"round":"Q-SF","gender":"W","event":"Women's 3x3 Basketball Semi-Final Qualifier"},{"round":"Q-SF","gender":"M","event":"Men's 3x3 Wheelchair Basketball Semi-Final Qualifier"},{"round":"Q-SF","gender":"W","event":"Women's 3x3 Wheelchair Basketball Semi-Final Qualifier"}],"65":[{"round":"QF","gender":"W","event":"Women's Bantamweight 54kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Bantamweight 55kg Quarter-Final"},{"round":"QF","gender":"W","event":"Women's Lightweight 60kg Quarter-Final"},{"round":"QF","gender":"W","event":"Women's Welterweight 65kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Welterweight 65kg Quarter-Final"},{"round":"QF","gender":"W","event":"Women's Middleweight 75kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Heavyweight 90kg Quarter-Final"}],"130":[{"round":"F","gender":"W","event":"Women's 69kg Final"},{"round":"MC","gender":"W","event":"Women's 69kg Medal Ceremony"}],"27":[{"round":"MC","gender":"M","event":"Men's Hammer Throw Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's T38 100m Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's High Jump Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 110m Hurdles Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Heptathlon Shot Put"},{"round":"F","gender":"W","event":"Women's High Jump Final"},{"round":"SF","gender":"M","event":"Men's 100m Semi-Finals"},{"round":"SF","gender":"W","event":"Women's 100m Semi-Finals"},{"round":"F","gender":"W","event":"Women's Hammer Throw Final"},{"round":"F","gender":"W","event":"Women's Heptathlon 200m"},{"round":"F","gender":"M","event":"Men's T20 Long Jump Final"},{"round":"F","gender":"W","event":"Men's 10,000m Final"},{"round":"MC","gender":"W","event":"Women's High Jump Medal Ceremony"},{"round":"F","gender":"M","event":"Men's 100m Final"},{"round":"MC","gender":"M","event":"Men's 10,000m Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 100m Final"},{"round":"MC","gender":"W","event":"Women's Hammer Throw Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's T20 Long Jump Medal Ceremony"}],"111":[{"round":"F","gender":"M","event":"Men's S13 50m Freestyle Final"},{"round":"F","gender":"W","event":"Women's S13 50m Freestyle Final"},{"round":"F","gender":"M","event":"Men's 100m Freestyle Final"},{"round":"MC","gender":"M","event":"Men's S13 50m Freestyle Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's S13 50m Freestyle Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 200m Individual Medley Final"},{"round":"F","gender":"M","event":"Men's 400m Individual Medley Final"},{"round":"MC","gender":"M","event":"Men's 100m Freestyle Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 200m Individual Medley Medal Ceremony"},{"round":"SF","gender":"W","event":"Women's 50m Freestyle Semi-Final"},{"round":"SF","gender":"M","event":"Men's 50m Butterfly Semi-Final"},{"round":"MC","gender":"M","event":"Men's 400m Individual Medley Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 50m Backstroke Final"},{"round":"F","gender":"M","event":"Men's 200m Breaststroke Final"},{"round":"F","gender":"W","event":"Women's 50m Breaststroke Final"},{"round":"MC","gender":"W","event":"Women's 50m Backstroke Medal Ceremony"},{"round":"SF","gender":"M","event":"Men's 100m Backstroke Semi-Final"},{"round":"TF","gender":"W","event":"Women's 800m Freestyle - Fastest 8"},{"round":"MC","gender":"M","event":"Men's 200m Breaststroke Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 50m Breaststroke Medal Ceremony"},{"round":"F","gender":"X","event":"Mixed 4 x 100m Medley Relay Final"},{"round":"MC","gender":"W","event":"Women's 800m Freestyle Medal Ceremony"},{"round":"MC","gender":"X","event":"Mixed 4 x 100m Medley Relay Medal Ceremony"}],"88":[{"round":"P","gender":"W","event":"New Zealand v Uganda"},{"round":"P","gender":"W","event":"Australia v Malawi"}],"47":[{"round":"P","gender":"M","event":"Men’s Pairs - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Singles - Sectional Play"},{"round":"P","gender":"M","event":"Para Men’s Pairs B6-B8 - Sectional Play"}],"131":[{"round":"F","gender":"W","event":"Women's 77kg Final"},{"round":"MC","gender":"W","event":"Women's 77kg Medal Ceremony"}],"28":[{"round":"F","gender":"W","event":"Women's Heptathlon Long Jump"},{"round":"P","gender":"W","event":"Women's 200m Round 1"},{"round":"P","gender":"M","event":"Men's Shot Put Qualifying Round - Group A & B"},{"round":"P","gender":"M","event":"Men's One Mile Round 1"},{"round":"P","gender":"M","event":"Men's 200m Round 1"},{"round":"P","gender":"W","event":"Women's Heptathlon Javelin Throw"},{"round":"P","gender":"M","event":"Men's 100m T12 Round 1"},{"round":"P","gender":"W","event":"Women's 400m Hurdles Round 1"}],"112":[{"round":"P","gender":"W","event":"Women's 200m Breaststroke - Heats"},{"round":"P","gender":"M","event":"Men's 200m Freestyle - Heats"},{"round":"P","gender":"W","event":"Women's 200m Butterfly - Heats"},{"round":"P","gender":"M","event":"Men's S7 50m Freestyle - Heats"},{"round":"P","gender":"W","event":"Women's S9 100m Freestyle - Heats"},{"round":"TF","gender":"M","event":"Men's 1500m Freestyle (Slower Heats)"},{"round":"P","gender":"W","event":"Women's 4 x 100m Medley Relay - Heats"},{"round":"P","gender":"M","event":"Men's 4 x 100m Medley Relay - Heats"}],"14":[{"round":"SF","gender":"M","event":"Men's 3x3 Basketball Semi-Final 1"},{"round":"SF","gender":"W","event":"Women's 3x3 Basketball Semi-Final 1"},{"round":"SF","gender":"M","event":"Men's 3x3 Wheelchair Basketball Semi-Final 1"},{"round":"SF","gender":"W","event":"Women's 3x3 Wheelchair Basketball Semi-Final 1"},{"round":"SF","gender":"M","event":"Men's 3x3 Basketball Semi-Final 2"},{"round":"SF","gender":"W","event":"Women's 3x3 Basketball Semi-Final 2"},{"round":"SF","gender":"M","event":"Men's 3x3 Wheelchair Basketball Semi-Final 2"},{"round":"SF","gender":"W","event":"Women's 3x3 Wheelchair Basketball Semi-Final 2"}],"66":[{"round":"QF","gender":"W","event":"Women's Flyweight 51kg Quarter-Final"},{"round":"QF","gender":"W","event":"Women's Featherweight 57kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Lightweight 60kg Quarter-Final"},{"round":"QF","gender":"W","event":"Women's Light-Middleweight 70kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Light-Middleweight 70kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Light-Heavyweight 80kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Super-Heavyweight 90+kg Quarter-Final"}],"132":[{"round":"F","gender":"M","event":"Men's 94kg Final"},{"round":"MC","gender":"M","event":"Men's 94kg Medal Ceremony"}],"89":[{"round":"P","gender":"W","event":"Jamaica v Scotland"},{"round":"P","gender":"W","event":"England v Tonga"}],"48":[{"round":"P","gender":"M","event":"Men’s Pairs - Sectional Play"},{"round":"P","gender":"W","event":"Para Women’s Pairs B6-B8 - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Singles - Sectional Play"}],"15":[{"round":"F","gender":"M","event":"Men's 3x3 Basketball - Bronze Medal Match"},{"round":"F","gender":"W","event":"Women's 3x3 Basketball - Bronze Medal Match"},{"round":"F","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Bronze Medal Match"},{"round":"F","gender":"W","event":"Women's 3x3 Wheelchair Basketball - Bronze Medal Match"},{"round":"F","gender":"M","event":"Men's 3x3 Wheelchair Basketball - Gold Medal Match"},{"round":"F","gender":"W","event":"Women's 3x3 Wheelchair Basketball - Gold Medal Match"},{"round":"F","gender":"M","event":"Men's 3x3 Basketball - Gold Medal Match"},{"round":"F","gender":"W","event":"Women's 3x3 Basketball - Gold Medal Match"},{"round":"MC","gender":"All","event":"Medal Ceremonies"}],"67":[{"round":"QF","gender":"W","event":"Women's Flyweight 51kg Quarter-Final"},{"round":"QF","gender":"W","event":"Women's Featherweight 57kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Lightweight 60kg Quarter-Final"},{"round":"QF","gender":"W","event":"Women's Light-Middleweight 70kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Light-Middleweight 70kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Light-Heavyweight 80kg Quarter-Final"},{"round":"QF","gender":"M","event":"Men's Super-Heavyweight 90+kg Quarter-Final"}],"133":[{"round":"F","gender":"W","event":"Women's 86kg Final"},{"round":"MC","gender":"W","event":"Women's 86kg Medal Ceremony"}],"29":[{"round":"MC","gender":"M","event":"Men's 100m Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 100m Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Discus Throw F42-44/61-64 Final"},{"round":"F","gender":"W","event":"Women's 1500m T54 Final"},{"round":"F","gender":"M","event":"Men's Long Jump Final"},{"round":"SF","gender":"M","event":"Men's 400m Hurdles Semi-Finals"},{"round":"SF","gender":"W","event":"Women's 800m Semi-Finals"},{"round":"F","gender":"W","event":"Women's Shot Put Final"},{"round":"F","gender":"M","event":"Men's 100m T47 Final"},{"round":"F","gender":"M","event":"Men's Discus Throw F42-44/61-64 Final"},{"round":"MC","gender":"W","event":"Women's Discus Throw F42-44/61-64 Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 1500m T54 Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Heptathlon 800m - Final"},{"round":"MC","gender":"M","event":"Men's 100m T47 Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 3000m Steeplechase Final"},{"round":"MC","gender":"M","event":"Men's Long Jump Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Shot Put Medal Ceremony"}],"113":[{"round":"F","gender":"M","event":"Men's 100m Backstroke Final"},{"round":"F","gender":"W","event":"Women's 200m Breaststroke Final"},{"round":"F","gender":"M","event":"Men's 200m Freestyle Final"},{"round":"MC","gender":"M","event":"Men's 100m Backstroke Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 200m Breaststroke Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 50m Freestyle Final"},{"round":"F","gender":"M","event":"Men's 50m Butterfly Final"},{"round":"MC","gender":"M","event":"Men's 200m Freestyle Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 50m Freestyle Medal Ceremony"},{"round":"F","gender":"W","event":"Women's S9 100m Freestyle Final"},{"round":"F","gender":"M","event":"Men's S7 50m Freestyle Final"},{"round":"MC","gender":"M","event":"Men's 50m Butterfly Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's S9 100m Freestyle Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 200m Butterfly Final"},{"round":"TF","gender":"M","event":"Men's 1500m Freestyle - Fastest 8"},{"round":"MC","gender":"M","event":"Men's S7 50m Freestyle Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 200m Butterfly Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 4 x 100m Medley Relay Final"},{"round":"F","gender":"M","event":"Men's 4 x 100m Medley Relay Final"},{"round":"MC","gender":"M","event":"Men's 1500m Freestyle Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 4 x 100m Medley Relay Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 4 x 100m Medley Relay Medal Ceremony"}],"90":[{"round":"P","gender":"W","event":"New Zeland v Wales"},{"round":"P","gender":"W","event":"Australia v South Africa"}],"49":[{"round":"P","gender":"M","event":"Para Men's Pairs B6-B8 - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Singles - Sectional Play"},{"round":"P","gender":"M","event":"Men’s Pairs - Sectional Play"}],"91":[{"round":"P","gender":"W","event":"Malawi v Tonga"},{"round":"P","gender":"W","event":"Uganda v Scotland"}],"134":[{"round":"F","gender":"M","event":"Men's 110kg Final"},{"round":"MC","gender":"M","event":"Men's 110kg Medal Ceremony"}],"114":[{"round":"P","gender":"W","event":"Women's Tandem B Sprint Qualification"},{"round":"P","gender":"W","event":"Women's 4000m Team Pursuit Qualification"},{"round":"SF","gender":"W","event":"Women's Tandem B Sprint Semi-Final (1)"},{"round":"P","gender":"M","event":"Men's 4000m Team Pursuit Qualification"},{"round":"SF","gender":"W","event":"Women's Tandem B Sprint Semi-Final (2)"},{"round":"P","gender":"W","event":"Women's C4-5 4000m Individual Pursuit Qualification"},{"round":"P","gender":"W","event":"Women's Team Sprint Qualification"},{"round":"SF","gender":"W","event":"Women's Tandem B Sprint Semi-Final (3 if req)"},{"round":"P","gender":"M","event":"Men's Team Sprint Qualification"}],"30":[{"round":"F","gender":"M","event":"Men's Decathlon 100m"},{"round":"F","gender":"M","event":"Men's Decathlon Long Jump"},{"round":"P","gender":"M","event":"Men's Javelin Throw Qualifying Round"},{"round":"P","gender":"W","event":"Women's 100m Hurdles Round 1"},{"round":"P","gender":"W","event":"Women's One Mile Round 1"},{"round":"P","gender":"W","event":"Men's Triple Jump Qualifying Round - Group A & B"},{"round":"F","gender":"M","event":"Men's Decathlon Shot Put"},{"round":"P","gender":"W","event":"Women's 400m Semi-Finals"},{"round":"P","gender":"M","event":"Men's 400m Semi-Finals"}],"135":[{"round":"F","gender":"W","event":"Women's +86kg Final"},{"round":"MC","gender":"W","event":"Women's +86kg Medal Ceremony"}],"92":[{"round":"P","gender":"W","event":"New Zealand v Trinidad and Tobago"},{"round":"P","gender":"W","event":"Australia v Northern Ireland"}],"50":[{"round":"P","gender":"M","event":"Men’s Pairs - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Singles - Sectional Play"},{"round":"P","gender":"W","event":"Para Women’s Pairs B6-B8 - Sectional Play"}],"115":[{"round":"F","gender":"W","event":"Women's Tandem B Sprint Final (1)"},{"round":"F","gender":"M","event":"Men's Tandem B 1000m Time Trial Final"},{"round":"F","gender":"W","event":"Women's Tandem B Sprint Final (2)"},{"round":"F","gender":"W","event":"Women's 4000m Team Pursuit Final"},{"round":"MC","gender":"M","event":"Men's Tandem B 1000m Time Trial Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 4000m Team Pursuit Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Tandem B Sprint Finals (3 if req)"},{"round":"F","gender":"W","event":"Women's C4-5 4000m Individual Pursuit Final"},{"round":"F","gender":"M","event":"Men's 4000m Team Pursuit Final"},{"round":"MC","gender":"W","event":"Women's Tandem B Sprint Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 4000m Team Pursuit Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's C4-5 4000m Individual Pursuit Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Team Sprint Final"},{"round":"F","gender":"M","event":"Men's Team Sprint Final"},{"round":"MC","gender":"W","event":"Women's Team Sprint Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's Team Sprint Medal Ceremony"}],"136":[{"round":"F","gender":"M","event":"Men's +110kg Final"},{"round":"MC","gender":"M","event":"Men's +110kg Medal Ceremony"}],"31":[{"round":"MC","gender":"M","event":"Men's Discus Throw F42-44/61-64 Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Heptathlon Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 3000m Steeplechase Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Shot Put Final"},{"round":"SF","gender":"M","event":"Men's 200m Semi-Finals"},{"round":"F","gender":"M","event":"Men's Decathlon High Jump"},{"round":"F","gender":"W","event":"Women's Triple Jump Final"},{"round":"F","gender":"W","event":"Women's 100m T47 Final"},{"round":"F","gender":"M","event":"Men's 100m T12 Final"},{"round":"SF","gender":"W","event":"Women's 200m Semi-Finals"},{"round":"MC","gender":"W","event":"Women's 100m T47 Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 100m T12 Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Discus Throw Final"},{"round":"SF","gender":"M","event":"Men's 800m Semi-Finals"},{"round":"F","gender":"M","event":"Men's Decathlon 400m"},{"round":"MC","gender":"M","event":"Men's Shot Put Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 5000m Final"},{"round":"MC","gender":"W","event":"Women's Triple Jump Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 100m Hurdles Final"}],"93":[{"round":"P","gender":"W","event":"Jamaica v Wales"},{"round":"P","gender":"W","event":"England v South Africa"}],"51":[{"round":"P","gender":"M","event":"Men’s Pairs - Sectional Play"},{"round":"P","gender":"M","event":"Para Men’s Pairs B6-B8 - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Singles - Sectional Play"}],"94":[{"round":"CL","gender":"W","event":"Classification Match (11 v 12)"},{"round":"CL","gender":"W","event":"Classification Match (9 v 10)"}],"32":[{"round":"F","gender":"M","event":"Men's Decathlon 110 Hurdles"},{"round":"P","gender":"W","event":"Women's Long Jump Qualifying Round - Group A"},{"round":"F","gender":"M","event":"Men's Decathlon Discus Throw"},{"round":"P","gender":"X","event":"Mixed 4x400m Relay Heats"},{"round":"P","gender":"W","event":"Women's Long Jump Qualifying Round - Group B"},{"round":"P","gender":"W","event":"Women's 200m T38 Round 1"},{"round":"P","gender":"W","event":"Women's 400m T54 Round 1"},{"round":"F","gender":"M","event":"Men's Decathlon Pole Vault"}],"116":[{"round":"P","gender":"W","event":"Women's Sprint Qualification"},{"round":"P","gender":"W","event":"Women's 4000m Individual Pursuit Qualification"},{"round":"F","gender":"W","event":"Women's Sprint 1/8 Final"},{"round":"P","gender":"M","event":"Men's Elimination Race Qualification"},{"round":"QF","gender":"W","event":"Women's Sprint Quarter-Final (1)"},{"round":"P","gender":"M","event":"Men's 4000m Individual Pursuit Qualification"},{"round":"QF","gender":"W","event":"Women's Sprint Quarter-Final (2)"},{"round":"P","gender":"W","event":"Women's 10km Scratch Race Qualification"},{"round":"QF","gender":"W","event":"Women's Sprint Quarter-Final (3 if req)"}],"68":[{"round":"SF","gender":"W","event":"Women's Bantamweight 54kg Semi-Final"},{"round":"SF","gender":"W","event":"Women's Welterweight 65kg Semi-Final"},{"round":"SF","gender":"M","event":"Men's Welterweight 65kg Semi-Final"},{"round":"SF","gender":"M","event":"Men's Light-Heavyweight 80kg Semi-Final"}],"73":[{"round":"P","gender":"W","event":"Women's -48kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"W","event":"Women's -52kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"W","event":"Women's -57kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"M","event":"Men's -60kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"M","event":"Men's -66kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"}],"95":[{"round":"CL","gender":"W","event":"Classification Match (7 v 8)"},{"round":"CL","gender":"W","event":"Classification Match (5 v 6)"}],"69":[{"round":"SF","gender":"M","event":"Men's Bantamweight 55kg Semi-Final"},{"round":"SF","gender":"W","event":"Women's Featherweight 57kg Semi-Final"},{"round":"SF","gender":"W","event":"Women's Light Middleweight 70kg Semi-Final"},{"round":"SF","gender":"M","event":"Men's Light-Middleweight 70kg Semi-Final"},{"round":"SF","gender":"M","event":"Men's Heavyweight 90kg Semi-Final"}],"52":[{"round":"P","gender":"W","event":"Para Women’s Pairs B6-B8 - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Singles - Sectional Play"},{"round":"P","gender":"M","event":"Men’s Pairs - Sectional Play"}],"74":[{"round":"F","gender":"W","event":"Women's -48kg Medal Contests"},{"round":"F","gender":"M","event":"Men's -60kg Medal Contests"},{"round":"MC","gender":"W","event":"Women's -48kg Medal Ceremony"},{"round":"F","gender":"W","event":"Women's -52kg Medal Contests"},{"round":"MC","gender":"M","event":"Men's -60kg Medal Ceremony"},{"round":"F","gender":"M","event":"Men's -66kg Medal Contests"},{"round":"MC","gender":"W","event":"Women's -52kg Medal Ceremony"},{"round":"F","gender":"W","event":"Women's -57kg Medal Contests"},{"round":"MC","gender":"M","event":"Men's -66kg Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's -57kg Medal Ceremony"}],"117":[{"round":"P","gender":"M","event":"Men's Keirin - Round 1"},{"round":"SF","gender":"W","event":"Women's Sprint Semi-Final (1)"},{"round":"F","gender":"W","event":"Women's 4000m Individual Pursuit Final"},{"round":"P","gender":"M","event":"Men's Keirin - Round 1 Repechage"},{"round":"SF","gender":"W","event":"Women's Sprint Semi-Final (2)"},{"round":"F","gender":"M","event":"Men's C1-3 1000m Time Trial Final"},{"round":"SF","gender":"W","event":"Women's Sprint Semi-Final (3 if req)"},{"round":"MC","gender":"W","event":"Women's 4000m Individual Pursuit Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's C1-3 1000m Time Trial Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 10km Scratch Race Final"},{"round":"F","gender":"M","event":"Men's 4000m Individual Pursuit Final"},{"round":"P","gender":"M","event":"Men's Keirin - Round 2"},{"round":"F","gender":"W","event":"Women's Sprint Final (1)"},{"round":"MC","gender":"W","event":"Women's 10km Scratch Race Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 4000m Individual Pursuit Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Sprint Final (2)"},{"round":"F","gender":"M","event":"Men's Keirin Final"},{"round":"F","gender":"M","event":"Men's Elimination Race Final"},{"round":"F","gender":"W","event":"Women's Sprint Final (3 if req)"},{"round":"MC","gender":"M","event":"Men's Keirin Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Sprint Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's Elimination Race Medal Ceremony"}],"33":[{"round":"MC","gender":"W","event":"Women's 100m Hurdles Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Discus Throw Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 5000m Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Decathlon Javelin Throw"},{"round":"F","gender":"M","event":"Men's 10,000m Race Walk Final"},{"round":"F","gender":"W","event":"Women's Pole Vault Final"},{"round":"F","gender":"W","event":"Women's Long Jump T38 Final"},{"round":"F","gender":"M","event":"Men's Javelin Throw Final"},{"round":"F","gender":"W","event":"Women's 800m Final"},{"round":"F","gender":"M","event":"Men's Decathlon 1500m"},{"round":"MC","gender":"M","event":"Men's 10,000m Race Walk Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 400m Hurdles Final"},{"round":"F","gender":"M","event":"Men's 400m Hurdles Final"},{"round":"MC","gender":"W","event":"Women's 800m Medal Ceremony"},{"round":"F","gender":"M","event":"Men's 200m Final"},{"round":"MC","gender":"M","event":"Men's Decathlon Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 400m Hurdles Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 200m Final"},{"round":"MC","gender":"M","event":"Men's 400m Hurdles Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Pole Vault Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 200m Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 200m Medal Ceremony"}],"70":[{"round":"SF","gender":"W","event":"Women's Flyweight 51kg Semi-Final"},{"round":"SF","gender":"W","event":"Women's Lightweight 60kg Semi-Final"},{"round":"SF","gender":"M","event":"Men's Lightweight 60kg Semi-Final"},{"round":"SF","gender":"W","event":"Women's Middleweight 75kg Semi-Final"},{"round":"SF","gender":"M","event":"Men's Super-Heavyweight 90+kg Semi-Final"}],"53":[{"round":"P","gender":"M","event":"Men’s Pairs - Sectional Play"},{"round":"P","gender":"W","event":"Women’s Singles - Sectional Play"},{"round":"P","gender":"M","event":"Para Men’s Pairs B6-B8 - Sectional Play"}],"96":[{"round":"SF","gender":"W","event":"Semi-final 1"}],"118":[{"round":"P","gender":"M","event":"Men's Sprint Qualification"},{"round":"P","gender":"M","event":"Men's Tandem B Sprint Qualification"},{"round":"F","gender":"M","event":"Men's Sprint 1/8 Final"},{"round":"SF","gender":"M","event":"Men's Tandem B Sprint Semi-Final (1)"},{"round":"QF","gender":"M","event":"Men's Sprint Quarter-Final (1)"},{"round":"P","gender":"M","event":"Men's 10km Scratch Race Qualification (Heat 1)"},{"round":"SF","gender":"M","event":"Men's Tandem B Sprint Semi-Final (2)"},{"round":"QF","gender":"M","event":"Men's Sprint Quarter-Final (2)"},{"round":"P","gender":"M","event":"Men's 10km Scratch Race Qualification (Heat 2)"},{"round":"SF","gender":"M","event":"Men's Tandem B Sprint Semi-Final (3 if req)"},{"round":"QF","gender":"M","event":"Men's Sprint Quarter-Final (3 if req)"},{"round":"P","gender":"W","event":"Women's 25km Point Race Qualification"}],"34":[{"round":"F","gender":"M","event":"Men's Shot Put F57 Final"},{"round":"F","gender":"M","event":"Men's Triple Jump Final"},{"round":"F","gender":"M","event":"Men's 1500m T54 Final"},{"round":"F","gender":"W","event":"Women's 10,000m Race Walk Final"},{"round":"MC","gender":"M","event":"Men's Javelin Throw Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Long Jump T38 Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Discus Throw Final"},{"round":"F","gender":"M","event":"Men's 400m Final"},{"round":"MC","gender":"M","event":"Men's 1500m T54 Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 10,000m Race Walk Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 400m Final"},{"round":"MC","gender":"M","event":"Men's Triple Jump Medal Ceremony"},{"round":"P","gender":"W","event":"Women's 4x100m Relay Round 1"},{"round":"P","gender":"M","event":"Men's 4x100m Relay Round 1"},{"round":"MC","gender":"M","event":"Men's 400m Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 400m Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 200m T38 Final"},{"round":"MC","gender":"M","event":"Men's Discus Throw Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's Shot Put F57 Medal Ceremony"}],"75":[{"round":"P","gender":"W","event":"Women's -63kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"W","event":"Women's -70kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"M","event":"Men's -73kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"M","event":"Men's -81kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"M","event":"Men's -90kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"}],"71":[{"round":"F","gender":"W","event":"Women's Bantamweight 54kg Final"},{"round":"F","gender":"M","event":"Men's Bantamweight 55kg Final"},{"round":"MC","gender":"W","event":"Women's Bantamweight 54kg Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Featherweight 57kg Final"},{"round":"MC","gender":"M","event":"Men's Bantamweight 55kg Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Welterweight 65kg Final"},{"round":"MC","gender":"W","event":"Women's Featherweight 57kg Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Welterweight 65kg Final"},{"round":"MC","gender":"W","event":"Women's Welterweight 65kg Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Light-Middleweight 70kg Final"},{"round":"MC","gender":"M","event":"Men's Welterweight 65kg Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Heavyweight 90kg Final"},{"round":"MC","gender":"M","event":"Men's Light-Middleweight 70kg Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's Heavyweight 90kg Medal Ceremony"}],"97":[{"round":"SF","gender":"W","event":"Semi-final 2"}],"119":[{"round":"F","gender":"M","event":"Men's Tandem B Sprint Final (1)"},{"round":"SF","gender":"M","event":"Men's Sprint Semi-Final (1)"},{"round":"F","gender":"W","event":"Women's Tandem B 1000m Time Trial Final"},{"round":"F","gender":"M","event":"Men's Tandem B Sprint Final (2)"},{"round":"SF","gender":"M","event":"Men's Sprint Semi-Final (2)"},{"round":"F","gender":"W","event":"Women's 25km Point Race Final"},{"round":"F","gender":"M","event":"Men's Tandem B Sprint Final (3 if req)"},{"round":"SF","gender":"M","event":"Men's Sprint Semi-Final (3 if req)"},{"round":"F","gender":"W","event":"Women's 1000m Time Trial Final"},{"round":"F","gender":"M","event":"Men's Sprint Final (1)"},{"round":"MC","gender":"W","event":"Women's Tandem B 1000m Time Trial Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's Tandem B Sprint Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Sprint Final (2)"},{"round":"MC","gender":"W","event":"Women's 25km Point Race Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 1000m Time Trial Medal Ceremony"},{"round":"F","gender":"M","event":"Men's 10km Scratch Race Final"},{"round":"F","gender":"M","event":"Men's Sprint Final (3 if req)"},{"round":"MC","gender":"M","event":"Men's Sprint Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 10km Scratch Race Medal Ceremony"}],"54":[{"round":"P","gender":"W","event":"Women’s Singles - Sectional Play"},{"round":"P","gender":"W","event":"Para Women’s Pairs B6-B8 - Sectional Play"},{"round":"SF","gender":"M","event":"Men’s Pairs Semi-Finals"},{"round":"SF","gender":"M","event":"Para Men’s Pairs B6-B8 Semi-Finals"},{"round":"SF","gender":"W","event":"Women’s Singles Semi-Finals"},{"round":"SF","gender":"W","event":"Para Women’s Pairs B6-B8 Semi-Finals"}],"76":[{"round":"F","gender":"M","event":"Men's -73kg Medal Contests"},{"round":"F","gender":"W","event":"Women's -63kg Medal Contests"},{"round":"MC","gender":"M","event":"Men's -73kg Medal Ceremony"},{"round":"F","gender":"M","event":"Men's -81kg Medal Contests"},{"round":"MC","gender":"W","event":"Women's -63kg Medal Ceremony"},{"round":"F","gender":"W","event":"Women's -70kg Medal Contests"},{"round":"MC","gender":"M","event":"Men's -81kg Medal Ceremony"},{"round":"F","gender":"M","event":"Men's -90kg Medal Contests"},{"round":"MC","gender":"W","event":"Women's -70kg Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's -90kg Medal Ceremony"}],"72":[{"round":"F","gender":"W","event":"Women's Flyweight 51kg Final"},{"round":"F","gender":"W","event":"Women's Lightweight 60kg Final"},{"round":"MC","gender":"W","event":"Women's Flyweight 51kg Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Lightweight 60kg Final"},{"round":"MC","gender":"W","event":"Women's Lightweight 60kg Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Light-Middleweight 70kg Final"},{"round":"MC","gender":"M","event":"Men's Lightweight 60kg Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Middleweight 75kg Final"},{"round":"MC","gender":"W","event":"Women's Light-Middleweight 70kg Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Light-Heavyweight 80kg Final"},{"round":"MC","gender":"W","event":"Women's Middleweight 75kg Medal Ceremony"},{"round":"F","gender":"M","event":"Men's Super-Heavyweight 90+kg Final"},{"round":"MC","gender":"M","event":"Men's Light-Heavyweight 80kg Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's Super-Heavyweight 90+kg Medal Ceremony"}],"35":[{"round":"F","gender":"M","event":"Men's Pole Vault Final"},{"round":"F","gender":"W","event":"Women's Long Jump Final"},{"round":"MC","gender":"W","event":"Women's 200m T38 Medal Ceremony"},{"round":"F","gender":"W","event":"Women's 400m T54 Final"},{"round":"F","gender":"W","event":"Women's Javelin Throw Final"},{"round":"F","gender":"M","event":"Men's 5000m Final"},{"round":"MC","gender":"W","event":"Women's 400m T54 Medal Ceremony"},{"round":"F","gender":"M","event":"Men's 4x100m Relay Final"},{"round":"F","gender":"W","event":"Women's 4x100m Relay Final"},{"round":"MC","gender":"M","event":"Men's 5000m Medal Ceremony"},{"round":"F","gender":"M","event":"Men's 800m Final"},{"round":"F","gender":"M","event":"Men's One Mile Final"},{"round":"MC","gender":"M","event":"Men's 4x100m Relay Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's 4x100m Relay Medal Ceremony"},{"round":"F","gender":"X","event":"Mixed 4x400m Relay Final"},{"round":"MC","gender":"W","event":"Men's 800m Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's One Mile Medal Ceremony"},{"round":"F","gender":"W","event":"Women's One Mile Final"},{"round":"MC","gender":"M","event":"Men's Pole Vault Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Long Jump Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's Javelin Throw Medal Ceremony"},{"round":"MC","gender":"W","event":"Women's One Mile Medal Ceremony"},{"round":"MC","gender":"X","event":"Mixed 4x400m Relay Medal Cermony"}],"98":[{"round":"F","gender":"W","event":"Bronze Medal Match"}],"120":[{"round":"P","gender":"W","event":"Women's Elimination Race Qualification"},{"round":"P","gender":"W","event":"Women's Keirin - Round 1"},{"round":"P","gender":"M","event":"Men's 40km Point Race Qualification"},{"round":"P","gender":"M","event":"Men's C1-3 3000m Individual Pursuit Qualification"},{"round":"F","gender":"M","event":"Men's 1000m Time Trial Final"},{"round":"P","gender":"W","event":"Women's Keirin - Round 1 Repechage"},{"round":"MC","gender":"M","event":"Men's 1000m Time Trial Medal Ceremony"}],"55":[{"round":"F","gender":"M","event":"Men's Pairs - Bronze Medal Match"},{"round":"F","gender":"M","event":"Para Men's Pairs B6-B8 - Bronze Medal Match"},{"round":"F","gender":"W","event":"Women's Singles - Bronze Medal Match"},{"round":"F","gender":"W","event":"Para Women's Pairs B6-B8 - Bronze Medal Match"},{"round":"F","gender":"M","event":"Para Men's Pairs B6-B8 - Gold Medal Match"},{"round":"F","gender":"W","event":"Para Women's Pairs B6-B8 - Gold Medal Match"},{"round":"F","gender":"M","event":"Men's Pairs - Gold Medal Match"},{"round":"F","gender":"W","event":"Women's Singles - Gold Medal Match"},{"round":"MC","gender":"All","event":"Medal Ceremonies"}],"77":[{"round":"P","gender":"W","event":"Women's -78kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"W","event":"Women's +78kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"M","event":"Men's -100kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"},{"round":"P","gender":"M","event":"Men's +100kg Preliminary Rounds, Quarter-Finals, Semi-Finals and Repechage"}],"99":[{"round":"F","gender":"W","event":"Gold Medal Match"},{"round":"MC","gender":"W","event":"Medal Ceremony"}],"78":[{"round":"F","gender":"W","event":"Women's -78kg Medal Contests"},{"round":"F","gender":"M","event":"Men's -100kg Medal Contests"},{"round":"MC","gender":"W","event":"Women's -78kg Medal Ceremony"},{"round":"F","gender":"W","event":"Women's +78kg Medal Contests"},{"round":"MC","gender":"M","event":"Men's -100kg Medal Ceremony"},{"round":"F","gender":"M","event":"Men's +100kg Medal Contests"},{"round":"MC","gender":"W","event":"Women's +78kg Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's +100kg Medal Ceremony"}],"121":[{"round":"F","gender":"W","event":"Women's Elimination Race Final"},{"round":"F","gender":"M","event":"Men's C1-3 3000m Individual Pursuit Final"},{"round":"P","gender":"W","event":"Women's Keirin - Round 2"},{"round":"MC","gender":"W","event":"Women's Elimination Race Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's C1-3 3000m Individual Pursuit Medal Ceremony"},{"round":"F","gender":"W","event":"Women's Keirin Final"},{"round":"F","gender":"W","event":"Women’s C4-5 1000m Time Trial Final"},{"round":"MC","gender":"W","event":"Women's Keirin Medal Ceremony"},{"round":"F","gender":"M","event":"Men's 40km Point Race Final"},{"round":"MC","gender":"W","event":"Women’s C4-5 1000m Time Trial Medal Ceremony"},{"round":"MC","gender":"M","event":"Men's 40km Point Race Medal Ceremony"}],"2":[]};
+    function categoryFor(fixture) {
+      return fixture.kind === 'CEREMONY' ? 'Ceremonies' : fixture.teams;
+    }
+    const categories = [...new Set(fixtures.map(categoryFor))].sort((a, b) => {
+      if (a === 'Ceremonies') return 1;
+      if (b === 'Ceremonies') return -1;
+      return a.localeCompare(b);
+    });
+    const STORE_KEY = 'cwg26-spoiler-safe-daily-schedule-v1';
+    const byId = Object.fromEntries(fixtures.map(f => [String(f.id), f]));
+    const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    let athleteData = { sessions: {} };
+    let modalSessionId = null;
+
+    function utcDate(iso) {
+      const [y,m,d] = iso.split('-').map(Number);
+      return new Date(Date.UTC(y, m - 1, d));
+    }
+    function isoDate(d) { return d.toISOString().slice(0, 10); }
+    function ukTodayIso() {
+      const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+      const value = Object.fromEntries(parts.map(p => [p.type, p.value]));
+      return `${value.year}-${value.month}-${value.day}`;
+    }
+    function addDays(iso, amount) {
+      const d = utcDate(iso);
+      d.setUTCDate(d.getUTCDate() + amount);
+      return isoDate(d);
+    }
+    function dateRange(start, end) {
+      const days = [];
+      let d = utcDate(start);
+      const last = utcDate(end);
+      while (d <= last) { days.push(isoDate(d)); d.setUTCDate(d.getUTCDate() + 1); }
+      return days;
+    }
+    const allDays = dateRange('2026-07-23', '2026-08-02');
+    const todayIso = ukTodayIso();
+    const keepFromIso = addDays(todayIso, -1);
+    const filteredDays = allDays.filter(day => day >= keepFromIso);
+    const visibleDays = filteredDays.length ? filteredDays : allDays;
+
+    function defaultState() {
+      const assigned = {}, order = {}, watched = {}, record = {}, deleted = {}, interests = {};
+      categories.forEach(category => interests[category] = true);
+      allDays.forEach(day => order[day] = []);
+      fixtures.forEach(f => {
+        const id = String(f.id);
+        assigned[id] = f.date;
+        watched[id] = false;
+        record[id] = false;
+        deleted[id] = false;
+        order[f.date].push(id);
+      });
+      return { assigned, order, watched, record, deleted, interests };
+    }
+    function readSaved() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY)); } catch { return null; }
+    }
+    function applySaved(base, saved) {
+      if (!saved || typeof saved !== 'object') return base;
+      fixtures.forEach(f => {
+        const id = String(f.id);
+        if (saved.assigned && allDays.includes(saved.assigned[id])) base.assigned[id] = saved.assigned[id];
+        if (saved.watched) base.watched[id] = Boolean(saved.watched[id]);
+        if (saved.record) base.record[id] = Boolean(saved.record[id]);
+        if (saved.deleted) base.deleted[id] = Boolean(saved.deleted[id]);
+      });
+      if (saved.interests && typeof saved.interests === 'object') {
+        categories.forEach(category => {
+          if (Object.prototype.hasOwnProperty.call(saved.interests, category)) {
+            base.interests[category] = Boolean(saved.interests[category]);
+          }
+        });
+      }
+      allDays.forEach(day => base.order[day] = []);
+      const seen = new Set();
+      allDays.forEach(day => {
+        const savedOrder = saved.order && Array.isArray(saved.order[day]) ? saved.order[day].map(String) : [];
+        savedOrder.forEach(id => {
+          if (byId[id] && base.assigned[id] === day && !base.deleted[id] && !seen.has(id)) { base.order[day].push(id); seen.add(id); }
+        });
+      });
+      fixtures.forEach(f => {
+        const id = String(f.id), day = base.assigned[id];
+        if (!base.deleted[id] && !seen.has(id) && allDays.includes(day)) base.order[day].push(id);
+      });
+      return base;
+    }
+    let state = applySaved(defaultState(), readSaved());
+    function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {} }
+    function startMinutes(time) {
+      const value = String(time || '').trim();
+      if (!value || value.toUpperCase() === 'TBC') return Number.MAX_SAFE_INTEGER;
+
+      // Supports the schedule's 24-hour times and also 7pm / 7:30pm if added later.
+      const twelveHour = value.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
+      if (twelveHour) {
+        let hour = Number(twelveHour[1]) % 12;
+        if (twelveHour[3].toLowerCase() === 'pm') hour += 12;
+        return hour * 60 + Number(twelveHour[2] || 0);
+      }
+
+      const twentyFourHour = value.match(/^(\d{1,2}):(\d{2})/);
+      return twentyFourHour
+        ? Number(twentyFourHour[1]) * 60 + Number(twentyFourHour[2])
+        : Number.MAX_SAFE_INTEGER;
+    }
+    function compareByOriginalDateTime(a, b) {
+      const fa = byId[a], fb = byId[b];
+      return fa.date.localeCompare(fb.date)
+        || startMinutes(fa.time) - startMinutes(fb.time)
+        || fa.teams.localeCompare(fb.teams)
+        || fa.id - fb.id;
+    }
+    function sortAllDays() {
+      // Group cards by the day chosen with the arrows, but order each group
+      // using the event's original scheduled date first and start time second.
+      allDays.forEach(day => { state.order[day] = []; });
+      fixtures.forEach(f => {
+        const id = String(f.id);
+        const day = state.assigned[id];
+        if (!state.deleted[id] && allDays.includes(day)) state.order[day].push(id);
+      });
+      allDays.forEach(day => state.order[day].sort(compareByOriginalDateTime));
+    }
+    function moveGame(id, targetDay) {
+      id = String(id);
+      const oldDay = state.assigned[id];
+      if (!oldDay || !state.order[oldDay] || !state.order[targetDay]) return;
+      state.order[oldDay] = state.order[oldDay].filter(x => x !== id);
+      state.assigned[id] = targetDay;
+      state.order[targetDay].push(id);
+      sortAllDays();
+      save(); render();
+    }
+    function shiftGame(id, offset) {
+      id = String(id);
+      const currentDay = state.assigned[id];
+      const currentIndex = visibleDays.indexOf(currentDay);
+      const targetIndex = currentIndex + offset;
+      if (currentIndex === -1 || targetIndex < 0 || targetIndex >= visibleDays.length) return;
+      state.record[id] = true;
+      moveGame(id, visibleDays[targetIndex]);
+    }
+    function deleteGame(id) {
+      id = String(id);
+      const f = byId[id], day = state.assigned[id];
+      if (!f || !day) return;
+      if (!window.confirm(`Remove ${f.teams} from your schedule?`)) return;
+      state.deleted[id] = true;
+      state.order[day] = (state.order[day] || []).filter(x => x !== id);
+      save(); render();
+    }
+    function toggleWatched(id) {
+      id = String(id); if (!byId[id]) return;
+      state.watched[id] = !state.watched[id]; save(); render();
+    }
+    function toggleRecord(id) {
+      id = String(id); if (!byId[id]) return;
+      state.record[id] = !state.record[id]; save(); render();
+    }
+    const roundNames = {
+      P: 'Preliminary',
+      QF: 'Quarter-final',
+      SF: 'Semi-final',
+      F: 'Final',
+      MC: 'Medal ceremony',
+      'Q-SF': 'Semi-final qualifier',
+      TF: 'Timed final'
+    };
+    function athleteSessionKeys(id) {
+      const f = byId[String(id)];
+      if (!f) return [String(id)];
+      return [
+        String(id),
+        `${f.date}|${f.time}|${f.teams}`,
+        `${f.date}|${f.time}|${categoryFor(f)}`
+      ];
+    }
+    function findAthleteSession(id) {
+      const sessions = athleteData && athleteData.sessions && typeof athleteData.sessions === 'object'
+        ? athleteData.sessions : {};
+      for (const key of athleteSessionKeys(id)) {
+        if (sessions[key]) return sessions[key];
+      }
+      return null;
+    }
+    function renderAthletes(id) {
+      const panel = document.getElementById('modalAthletes');
+      const empty = document.getElementById('athleteEmpty');
+      panel.textContent = '';
+      const session = findAthleteSession(id);
+      const events = session && Array.isArray(session.events) ? session.events : [];
+      if (!events.length) {
+        empty.hidden = false;
+        empty.textContent = 'No official athlete/start-list data is available for this exact session yet.';
+        return;
+      }
+      empty.hidden = true;
+      events.forEach(item => {
+        const card = document.createElement('section');
+        card.className = 'athlete-event';
+        const head = document.createElement('div');
+        head.className = 'athlete-event-head';
+        const title = document.createElement('span');
+        title.textContent = item.event || item.round || 'Event';
+        head.appendChild(title);
+        if (item.time) {
+          const time = document.createElement('span');
+          time.className = 'athlete-event-time';
+          time.textContent = item.time;
+          head.appendChild(time);
+        }
+        const rows = document.createElement('ul');
+        rows.className = 'athlete-rows';
+        const athletes = Array.isArray(item.athletes) ? item.athletes : [];
+        if (!athletes.length) {
+          const row = document.createElement('li');
+          row.className = 'athlete-row';
+          row.textContent = 'Start list not published for this event yet.';
+          rows.appendChild(row);
+        } else {
+          athletes.forEach(athlete => {
+            const row = document.createElement('li');
+            row.className = 'athlete-row';
+            const left = document.createElement('span');
+            const name = document.createElement('span');
+            name.className = 'athlete-name';
+            name.textContent = athlete.name || athlete.team || 'TBC';
+            left.appendChild(name);
+            const details = [athlete.lane && `Lane ${athlete.lane}`, athlete.heat, athlete.bout, athlete.position]
+              .filter(Boolean).join(' · ');
+            if (details) {
+              const extra = document.createElement('span');
+              extra.className = 'athlete-extra';
+              extra.textContent = details;
+              left.appendChild(extra);
+            }
+            const nation = document.createElement('span');
+            nation.className = 'athlete-nation';
+            nation.textContent = athlete.nation || athlete.country || '';
+            row.append(left, nation);
+            rows.appendChild(row);
+          });
+        }
+        card.append(head, rows);
+        panel.appendChild(card);
+      });
+    }
+    function updateModalActions() {
+      if (!modalSessionId) return;
+      const done = document.getElementById('modalDoneBtn');
+      const record = document.getElementById('modalRecordBtn');
+      const watched = Boolean(state.watched[modalSessionId]);
+      const onDemand = Boolean(state.record[modalSessionId]);
+      done.textContent = watched ? 'Undo done' : 'Mark done';
+      done.classList.toggle('active', watched);
+      record.textContent = onDemand ? 'Set live' : 'Set on demand';
+      record.classList.toggle('active', onDemand);
+    }
+    function openSessionModal(id) {
+      id = String(id);
+      const f = byId[id];
+      if (!f) return;
+      modalSessionId = id;
+      const modal = document.getElementById('sessionModal');
+      const events = sessionDetails[id] || [];
+      renderAthletes(id);
+      document.getElementById('modalTitle').textContent = f.teams;
+      document.getElementById('modalMeta').textContent =
+        `${fmt.format(utcDate(f.date))} · ${f.time} · ${f.stage}`;
+      const note = document.getElementById('modalNote');
+      const list = document.getElementById('modalEvents');
+      const empty = document.getElementById('modalEmpty');
+      list.textContent = '';
+      if (events.length) {
+        note.hidden = false;
+        note.textContent =
+          'Official session programme. Exact athlete/start-list names and exact per-event times are not included in the published schedule. Events may not take place in the order shown.';
+        empty.hidden = true;
+        events.forEach(item => {
+          const li = document.createElement('li');
+          li.className = 'event-item';
+          const round = document.createElement('span');
+          round.className = 'round-label';
+          round.textContent = roundNames[item.round] || item.round;
+          const event = document.createElement('span');
+          event.className = 'event-name';
+          event.textContent = item.event;
+          li.append(round, event);
+          list.appendChild(li);
+        });
+      } else {
+        note.hidden = true;
+        empty.hidden = false;
+        empty.textContent = 'No detailed competition programme is published for this card.';
+      }
+      updateModalActions();
+      modal.hidden = false;
+      document.body.classList.add('modal-open');
+      document.getElementById('modalClose').focus();
+    }
+    function closeSessionModal() {
+      const modal = document.getElementById('sessionModal');
+      modal.hidden = true;
+      document.body.classList.remove('modal-open');
+      modalSessionId = null;
+    }
+    function makeGame(id) {
+      const f = byId[String(id)];
+      const record = Boolean(state.record[String(id)]), watched = Boolean(state.watched[String(id)]);
+      const row = document.createElement('div');
+      row.className = 'game' + (f.medal ? ' medal' : '') + (record ? ' record' : '') + (watched ? ' watched' : '');
+      row.dataset.id = String(id); row.tabIndex = 0; row.setAttribute('role','button');
+      row.setAttribute('aria-label', `${f.time}, ${f.teams}, ${f.stage}. Open session details`);
+      const time = document.createElement('div'); time.className = 'time'; time.textContent = f.time;
+      const details = document.createElement('div');
+      const teams = document.createElement('div'); teams.className = 'teams'; teams.textContent = f.teams;
+      const stage = document.createElement('div'); stage.className = 'stage'; stage.textContent = f.stage;
+      details.append(teams, stage);
+      const pill = document.createElement('div'); pill.className = 'pill'; pill.textContent = record ? 'ON DEMAND' : (f.medal ? 'MEDAL' : 'LIVE');
+      const done = document.createElement('div'); done.className = 'done'; done.textContent = 'DONE';
+      const side = document.createElement('div'); side.className = 'side'; side.append(pill, done);
+      const currentDay = state.assigned[String(id)], currentIndex = visibleDays.indexOf(currentDay);
+      const up = document.createElement('button'); up.type = 'button'; up.textContent = '↑'; up.title = 'Move to previous day'; up.setAttribute('aria-label','Move session to previous day'); up.disabled = currentIndex <= 0;
+      up.addEventListener('pointerup', e => e.stopPropagation()); up.addEventListener('click', e => { e.stopPropagation(); shiftGame(String(id), -1); });
+      const down = document.createElement('button'); down.type = 'button'; down.textContent = '↓'; down.title = 'Move to next day'; down.setAttribute('aria-label','Move session to next day'); down.disabled = currentIndex === -1 || currentIndex >= visibleDays.length - 1;
+      down.addEventListener('pointerup', e => e.stopPropagation()); down.addEventListener('click', e => { e.stopPropagation(); shiftGame(String(id), 1); });
+      const doneButton = document.createElement('button'); doneButton.type = 'button'; doneButton.textContent = '✓'; doneButton.className = 'done-btn' + (watched ? ' active' : ''); doneButton.title = watched ? 'Mark as not done' : 'Mark as done'; doneButton.setAttribute('aria-label', `${watched ? 'Mark as not done' : 'Mark as done'}: ${f.teams}`);
+      doneButton.addEventListener('pointerup', e => e.stopPropagation()); doneButton.addEventListener('click', e => { e.stopPropagation(); toggleWatched(String(id)); });
+      const controls = document.createElement('div'); controls.className = 'move-buttons'; controls.append(up, down, doneButton);
+      row.append(time, details, side, controls);
+      row.addEventListener('pointerup', e => { if (!e.target.closest('button')) openSessionModal(id); });
+      row.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) { e.preventDefault(); openSessionModal(id); } });
+      row.addEventListener('contextmenu', e => e.preventDefault());
+      return row;
+    }
+    function selectedCategories() {
+      return categories.filter(category => state.interests[category] !== false);
+    }
+    function updateFilterSummary() {
+      const selected = selectedCategories();
+      const summary = document.getElementById('filterSummary');
+      if (selected.length === categories.length) summary.textContent = 'Interested in: All sports';
+      else if (selected.length === 0) summary.textContent = 'Interested in: Nothing selected';
+      else if (selected.length === 1) summary.textContent = `Interested in: ${selected[0]}`;
+      else summary.textContent = `Interested in: ${selected.length} selected`;
+    }
+    function syncFilterControls() {
+      document.querySelectorAll('#filterOptions input[data-category]').forEach(input => {
+        input.checked = state.interests[input.dataset.category] !== false;
+      });
+      updateFilterSummary();
+    }
+    function setAllInterests(value) {
+      categories.forEach(category => state.interests[category] = value);
+      syncFilterControls();
+      save();
+      render();
+    }
+    function buildFilter() {
+      const options = document.getElementById('filterOptions');
+      categories.forEach(category => {
+        const label = document.createElement('label');
+        label.className = 'filter-option';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.dataset.category = category;
+        input.checked = state.interests[category] !== false;
+        input.addEventListener('change', () => {
+          state.interests[category] = input.checked;
+          updateFilterSummary();
+          save();
+          render();
+        });
+        const text = document.createElement('span');
+        text.textContent = category;
+        label.append(input, text);
+        options.appendChild(label);
+      });
+      document.getElementById('selectAllSports').addEventListener('click', () => setAllInterests(true));
+      document.getElementById('clearAllSports').addEventListener('click', () => setAllInterests(false));
+      updateFilterSummary();
+    }
+    function render() {
+      sortAllDays();
+      const schedule = document.getElementById('days'); schedule.textContent = '';
+      let shownDays = 0;
+      visibleDays.forEach(day => {
+        const ids = (state.order[day] || []).filter(id => state.interests[categoryFor(byId[id])] !== false);
+        if (!ids.length) return;
+        shownDays += 1;
+        const section = document.createElement('section'); section.className = 'day' + (day === todayIso ? ' today' : ''); section.dataset.date = day;
+        const title = document.createElement('h2'); title.className = 'day-title'; title.textContent = fmt.format(utcDate(day));
+        const list = document.createElement('div'); list.className = 'games'; list.dataset.day = day;
+        ids.forEach(id => list.appendChild(makeGame(id)));
+        section.append(title, list); schedule.appendChild(section);
+      });
+      if (!shownDays) {
+        const empty = document.createElement('div');
+        empty.className = 'no-matches';
+        empty.textContent = 'No sessions match your selected interests.';
+        schedule.appendChild(empty);
+      }
+    }
+    function scrollToToday() {
+      const target = document.querySelector('.day.today');
+      if (target) target.scrollIntoView({ block: 'start' });
+    }
+    document.getElementById('modalClose').addEventListener('click', closeSessionModal);
+    document.getElementById('sessionModal').addEventListener('click', e => {
+      if (e.target.id === 'sessionModal') closeSessionModal();
+    });
+    document.getElementById('modalDoneBtn').addEventListener('click', () => {
+      if (!modalSessionId) return;
+      state.watched[modalSessionId] = !state.watched[modalSessionId];
+      save(); render(); updateModalActions();
+    });
+    document.getElementById('modalRecordBtn').addEventListener('click', () => {
+      if (!modalSessionId) return;
+      state.record[modalSessionId] = !state.record[modalSessionId];
+      save(); render(); updateModalActions();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && !document.getElementById('sessionModal').hidden) closeSessionModal();
+    });
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      try { localStorage.removeItem(STORE_KEY); } catch {}
+      state = defaultState();
+      syncFilterControls();
+      save(); render(); requestAnimationFrame(scrollToToday);
+    });
+    buildFilter();
+    render(); requestAnimationFrame(scrollToToday);
+  </script>
+</body>
+</html>
